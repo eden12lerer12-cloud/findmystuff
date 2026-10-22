@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#7161d4" />
+    <meta
+      name="description"
+      content="מקום קטן לזכור איפה הדברים שלך. שומרים חפץ, תמונה ומיקום ומוצאים בקלות."
+    />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"
+    />
+    <title>FindMyStuff — איפה שמתי?</title>
+    <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="module" src="./src/app.js"></script>
+  </head>
+  <body>
+    <a class="skip" href="#main" data-i18n="skip">דילוג לתוכן</a>
+    <header class="topbar">
+      <a class="brand" href="./"
+        ><img src="./icon.svg" alt="" width="38" height="38" /><span
+          data-i18n="brand"
+          >איפה שמתי?</span
+        ></a
+      ><span class="tagline" data-i18n="tagline">פחות לחפש. יותר למצוא.</span
+      ><button
+        type="button"
+        class="language-button"
+        id="language-switch"
+        lang="en"
+        aria-label="Switch to English"
+      >
+        English</button
+      ><span class="local-badge"
+        ><span></span><span data-i18n="privateBadge">נשמר רק אצלך</span></span
+      >
+    </header>
+    <main id="main">
+      <section class="hero">
+        <div class="hero-copy">
+          <span class="eyebrow" data-i18n="eyebrow">קצת סדר, הרבה שקט</span>
+          <h1>
+            <span data-i18n="headline">לכל דבר יש מקום.</span><br /><span
+              data-i18n="headlineAccent"
+              >עכשיו גם לזיכרון שלך.</span
+            >
+          </h1>
+          <p>
+            <span data-i18n="intro">המפתח הרזרבי, הדרכון, המטען ההוא.</span
+            ><br /><span data-i18n="introNext"
+              >שומרים כאן איפה הנחת אותם — וממשיכים ביום.</span
+            >
+          </p>
+          <button class="primary" id="hero-add" data-i18n="heroAdd">
+            ＋ הוספת חפץ ראשון
+          </button>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <span class="orbit orbit-one"></span
+          ><span class="orbit orbit-two"></span>
+          <div class="little-star">✦</div>
+          <div class="floating-item key">🔑</div>
+          <div class="floating-item headphone">🎧</div>
+          <div class="place-card">
+            <span class="card-dot"></span>
+            <div class="pin">⌖</div>
+            <strong data-i18n="artTitle">בדיוק כאן.</strong
+            ><span data-i18n="artLocation">המגירה הקטנה, ליד הדלת</span>
+            <div class="mini-location" data-i18n="artCheck">
+              ✓ מקום אחד פחות לחפש
+            </div>
+          </div>
+          <div class="floating-item glasses">👓</div>
+        </div>
+      </section>
+      <section class="collection" aria-labelledby="collection-title">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow" data-i18n="collectionEyebrow"
+              >הזיכרון הקטן שלך</span
+            >
+            <h2 id="collection-title">
+              <span data-i18n="collectionTitle">הדברים שלי</span>
+              <span id="total" class="count">0</span>
+            </h2>
+          </div>
+          <button class="primary" id="add-item" data-i18n="add">
+            ＋ הוספת חפץ
+          </button>
+        </div>
+        <div class="toolbar">
+          <div class="search-wrap">
+            <span aria-hidden="true">⌕</span
+            ><input
+              id="search"
+              type="search"
+              aria-label="חיפוש חפצים"
+              data-i18n-aria-label="search"
+              placeholder="מה מחפשים? שם, מקום או פרט שזוכרים…"
+              data-i18n-placeholder="searchPlaceholder"
+              autocomplete="off"
+            /><kbd>/</kbd>
+          </div>
+          <label class="sort-label"
+            ><span data-i18n="sort">מיון</span>
+            <select id="sort">
+              <option value="recent" data-i18n="sortRecent">
+                עודכנו לאחרונה
+              </option>
+              <option value="name" data-i18n="sortName">לפי שם</option>
+            </select></label
+          >
+        </div>
+        <div class="filter-line">
+          <div
+            class="chips"
+            id="rooms"
+            role="group"
+            aria-label="סינון לפי חדר"
+            data-i18n-aria-label="roomFilter"
+          ></div>
+          <label class="category-label"
+            ><span class="sr-only" data-i18n="categoryFilter"
+              >סינון לפי קטגוריה</span
+            ><select id="category">
+              <option value="" data-i18n="allCategories">כל הקטגוריות</option>
+            </select></label
+          >
+        </div>
+        <p id="results-label" class="results-label" aria-live="polite"></p>
+        <div id="items" class="items"></div>
+        <div id="empty" class="empty">
+          <div class="empty-icon">⌖</div>
+          <h3 data-i18n="emptyTitle">כאן מתחילים לזכור</h3>
+          <p>
+            <span data-i18n="emptyText">יש משהו שתמיד נעלם לך?</span><br /><span
+              data-i18n="emptyNext"
+              >שמור את המקום שלו עכשיו, ותודה לעצמך אחר כך.</span
+            >
+          </p>
+          <button id="empty-add" data-i18n="emptyAdd" class="primary">
+            ＋ שמירת החפץ הראשון</button
+          ><button id="demo" class="text-button" data-i18n="demo">
+            קודם אנסה עם חפצים לדוגמה
+          </button>
+        </div>
+        <div id="no-results" class="empty" hidden>
+          <div class="empty-icon">⌕</div>
+          <h3 data-i18n="noResults">לא מצאנו התאמה</h3>
+          <p data-i18n="noResultsText">אפשר לנסות שם אחר או לחפש לפי המיקום.</p>
+          <button id="clear-filters" class="secondary" data-i18n="clearFilters">
+            ניקוי החיפוש והסינון
+          </button>
+        </div>
+      </section>
+      <p class="accuracy-notice" data-i18n="accuracy">
+        מוצגים מיקומים שתיעדת. האפליקציה אינה עוקבת אחרי חפצים בזמן אמת.
+      </p>
+      <aside class="tip">
+        <span class="tip-icon">✦</span>
+        <div>
+          <strong data-i18n="tipTitle">הסוד הוא בפרטים הקטנים</strong>
+          <p data-i18n="tipText">
+            ״בחדר השינה״ זה טוב. ״בקופסה הלבנה, במדף העליון בארון״ זה אפילו טוב
+            יותר.
+          </p>
+        </div>
+      </aside>
+      <footer>
+        <span
+          ><span data-i18n="brand">איפה שמתי?</span>
+          <span class="footer-dot">·</span>
+          <span data-i18n="footer">מקום לדברים שחשובים לך.</span></span
+        >
+        <div>
+          <button id="export" class="text-button" data-i18n="export">
+            ייצוא גיבוי</button
+          ><button id="import" class="text-button" data-i18n="import">
+            ייבוא גיבוי</button
+          ><input
+            type="file"
+            id="import-file"
+            accept="application/json,.json"
+            hidden
+          />
+        </div>
+        <p data-i18n="storageNotice">
+          הנתונים נשמרים בדפדפן ובמכשיר הזה. ניקוי נתוני האתר עלול למחוק אותם —
+          כדאי לייצא גיבוי.
+        </p>
+      </footer>
+    </main>
+    <dialog id="editor" aria-labelledby="editor-title">
+      <form id="item-form">
+        <div class="dialog-heading">
+          <div>
+            <span class="eyebrow" data-i18n="editorEyebrow"
+              >שומרים עכשיו, מוצאים אחר כך</span
+            >
+            <h2 id="editor-title" data-i18n="editorTitle">איפה שמים את זה?</h2>
+          </div>
+          <button
+            type="button"
+            class="icon-button"
+            id="close-editor"
+            aria-label="סגירת החלון"
+            data-i18n-aria-label="close"
+          >
+            ×
+          </button>
+        </div>
+        <div class="form-content">
+          <label class="photo-picker" id="photo-picker"
+            ><input
+              type="file"
+              id="photo"
+              accept="image/jpeg,image/png,image/webp"
+            /><img
+              id="photo-preview"
+              alt="תצוגה מקדימה של החפץ"
+              data-i18n-alt="photoPreview"
+              hidden
+            /><span id="photo-hint"
+              ><b>＋</b><span data-i18n="addPhoto">הוספת תמונה</span
+              ><small data-i18n="photoHelp"
+                >צילום או בחירה מהגלריה · עד 12MB</small
+              ></span
+            ></label
+          ><button
+            type="button"
+            id="remove-photo"
+            class="text-button"
+            hidden
+            data-i18n="removePhoto"
+          >
+            הסרת תמונה</button
+          ><label
+            ><span data-i18n="name">מה החפץ?</span>
+            <input
+              id="item-name"
+              name="name"
+              required
+              maxlength="100"
+              placeholder="למשל, מפתח רזרבי"
+              data-i18n-placeholder="namePlaceholder"
+              autocomplete="off"
+          /></label>
+          <div class="form-row">
+            <label
+              ><span data-i18n="room">באיזה חדר?</span>
+              <input
+                id="item-room"
+                name="room"
+                list="room-options"
+                required
+                maxlength="80"
+                placeholder="למשל, כניסה לבית"
+                data-i18n-placeholder="roomPlaceholder"
+                autocomplete="off" /><datalist
+                id="room-options"
+              ></datalist></label
+            ><label
+              ><span data-i18n="category">קטגוריה</span>
+              <select id="item-category" name="category"></select
+            ></label>
+          </div>
+          <label
+            ><span data-i18n="location">איפה בדיוק?</span>
+            <input
+              name="location"
+              id="item-location"
+              required
+              maxlength="180"
+              placeholder="למשל, במגירה העליונה, בקופסה הכחולה"
+              data-i18n-placeholder="locationPlaceholder" /></label
+          ><label
+            ><span data-i18n="notes">עוד משהו שכדאי לזכור</span>
+            <span class="optional" data-i18n="optional">(לא חובה)</span
+            ><textarea
+              id="item-notes"
+              name="notes"
+              maxlength="1200"
+              rows="2"
+              placeholder="צבע, סימן מזהה או כל פרט שיעזור למצוא"
+              data-i18n-placeholder="notesPlaceholder"
+            ></textarea>
+          </label>
+          <p class="form-error" id="form-error" role="alert"></p>
+        </div>
+        <div class="dialog-footer">
+          <button class="primary" type="submit" id="save-item" data-i18n="save">
+            שמירת החפץ</button
+          ><button
+            class="secondary"
+            type="button"
+            id="cancel-editor"
+            data-i18n="cancel"
+          >
+            ביטול
+          </button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="backup-dialog" aria-labelledby="backup-title">
+      <div class="backup-body">
+        <h2 id="backup-title" data-i18n="importTitle">הוספת חפצים מגיבוי</h2>
+        <p id="backup-summary"></p>
+        <p data-i18n="importExplain">
+          חפצים בעלי אותו מזהה יעודכנו לפי הגיבוי. שאר החפצים שלך יישארו.
+        </p>
+        <div class="dialog-footer">
+          <button class="primary" id="confirm-import" data-i18n="importConfirm">
+            ייבוא החפצים</button
+          ><button class="secondary" id="cancel-import" data-i18n="cancel">
+            ביטול
+          </button>
+        </div>
+      </div>
+    </dialog>
+    <div id="toast" class="toast" role="status" hidden>
+      <span id="toast-text"></span
+      ><button id="undo" hidden data-i18n="undo">ביטול המחיקה</button>
+    </div>
+  </body>
+</html>
