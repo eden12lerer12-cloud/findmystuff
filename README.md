@@ -1,81 +1,69 @@
 # FindMyStuff · איפה שמתי?
 
-A small, private place to remember where you put things. A Hebrew/English web application that stores item names, photos, rooms, last recorded locations and notes on your own device. It retrieves what you recorded; it does not track objects in real time.
+**Remember where you put your things.** A free, private Hebrew/English household inventory. Record an item and its location, then search when you need it. FindMyStuff retrieves what you recorded; it does not track physical objects in real time.
 
-![FindMyStuff Hebrew interface with fictional sample items](docs/screenshot.jpg)
+[Try FindMyStuff](https://eden12lerer12-cloud.github.io/findmystuff/) · [Report a bug](https://github.com/eden12lerer12-cloud/findmystuff/issues) · [Contribute](CONTRIBUTING.md)
+
+![Hebrew dashboard with fictional sample items](docs/screenshot.jpg)
+
+[Dark appearance](docs/dark-mode.jpg) · [Mobile view](docs/mobile.jpg)
+
+## What you can do
+
+- Add an item quickly with its name and location; photos and notes are optional.
+- Create, rename and browse rooms, furniture, shelves, drawers and boxes in an expandable home tree. See all items inside a storage location, including descendants.
+- Keep using manual room/location text. Add or remove reusable categories, rooms and places. General remains a safe category fallback.
+- Click any item card/photo for details, edit/delete actions and confirmed location history. Renaming storage or editing notes does not invent a move.
+- Search in Hebrew and English using partial words, common synonyms and conservative one-character typo tolerance. Natural-language filler is removed locally; this is deterministic search, not AI.
+- Filter by room/category, sort recent updates or names, reopen recent storage locations and load large result lists in batches.
+- Choose Light, Dark or Device appearance. Use keyboard navigation, RTL/LTR layouts and an optional four-step guide.
+- Try fictional demo items from the empty screen. Demo records never replace existing data.
+- Export validated JSON backups, preview imports, keep existing IDs by default and cancel preparation before writing. Explicitly opt into replacement when needed.
+- Delete all application data from this browser using a confirmation screen.
+
+## Privacy and limits
+
+No registration, analytics, paid API or cloud database. Records and locally resized photographs stay in IndexedDB in **this browser, device and website origin**. Hosting providers still see normal requests for static application files. Public GitHub Issues are for fictional reproduction examples only.
+
+Localhost, the public demo, another browser and another device each have separate storage. Clearing site data, browser eviction or losing your device can lose records. Export backups regularly. There is no automatic GitHub backup of your inventory.
+
+**Backup JSON is unencrypted and includes private photos.** Keep files private; do not commit them. Export/import share a 50 MiB / 20,000-item limit. Oversized or invalid exports are refused before download without truncating data. Local Web Workers process backups off the UI thread. Imports validate everything first and write atomically. Versions 1, 2 and 3 import; new exports use version 3, including hierarchy and history. Catalogs support up to 500 entries per list, hierarchy depth eight and history 1,000 events per item. Exceeding a bound produces an error, never silent loss.
+
+Deleting a nonempty parent storage location is blocked. Deleting a leaf preserves its items' last recorded location text. Removing categories reassigns their items to General. Legacy item-only category labels are preserved; creating new one-time categories is intentionally unavailable.
+
+Version 0.4.0 has no service worker, cloud synchronization, AI recognition, QR labels, voice input, collections or moving checklist. These are incremental follow-ups, not hidden network services. See the [roadmap](docs/ROADMAP.md).
 
 ## Run locally
 
-Install Node.js 22 or newer, then:
+Install Node.js 22 or newer:
 
 ```sh
+git clone https://github.com/eden12lerer12-cloud/findmystuff.git
+cd findmystuff
 npm start
 ```
 
-Open http://127.0.0.1:4173. There are no runtime dependencies to install, no account requirement and no API keys. Run `npm ci` to install the development-only IndexedDB test helper before running tests.
-
-## Features
-
-- Add, edit and delete items; undo the most recent deletion during the current session.
-- Search names, locations and notes, including Hebrew text with vowel marks.
-- Filter by room or category; sort by name or most recent update.
-- Add or remove reusable categories and storage places from the dashboard or item editor.
-- Add new categories directly from the category picker and save rooms for future items.
-- Open an item card or photo to view its details, then choose Edit when needed.
-- Category removal moves affected items to General; removing a place never changes previously recorded locations. General stays as a protected fallback.
-- Choose a photo from your device, or use the camera option offered by your mobile browser.
-- Resize images locally before saving. Supported formats: JPEG, PNG and WebP, up to 12 MB input.
-- Export a JSON backup including photos; preview an import summary before merging it.
-- Refresh other open tabs when an item changes.
-- Responsive design, keyboard controls, native dialogs and reduced-motion support.
-- Hebrew and English interfaces with RTL/LTR switching; changing the interface language does not translate or modify your records.
-
-## Privacy and storage
-
-Records and photos are stored in IndexedDB for this browser, device and origin. They are not uploaded to GitHub or a server. The application has no analytics, remote fonts or external image requests. Hosting providers still receive ordinary website requests.
-
-This version does not have accounts, cloud sync, background backup or a service worker for offline installation. Clearing site data or losing the device can lose records. Localhost, a deployed website and another browser have separate storage. Export a backup to move your data.
-
-**Backup files contain unencrypted private data and photos.** Store them privately and do not commit them to the source repository. Version 2 backups include reusable category and place lists; version 1 backups still import. Lists merge by ID without removing existing options. Imports merge by item ID and keep existing items by default. Replacement requires an explicit checkbox in the preview. Export and import share limits of 50 MiB and 20,000 records. Export validates records and UTF-8 byte size before offering a download; it refuses oversized backups without truncating or changing data. Processing runs in a local Web Worker and can be canceled before commit. Larger collections need a future multipart format; the app clearly refuses an export it cannot restore. See the [stability report](docs/IMPLEMENTATION_LOG.md).
-
-## Development
+Open http://127.0.0.1:4173. The app has no external runtime dependencies or API keys. A development-only IndexedDB helper is installed for tests:
 
 ```sh
 npm ci
 npm test
 npm run build
+npm start -- --dist --base /findmystuff
 ```
 
-`npm test` covers Hebrew search, filters, sorting, backup validation, translation completeness, schema migration, category reassignment, item-only values and atomic import rollback. `npm run build` creates a static `dist/` folder with only the application files. Serve `dist/` with any static HTTPS host.
+The last command previews the exact deployment path at http://127.0.0.1:4173/findmystuff/ (stop an existing preview server first). `dist/` contains only static runtime files and can be served over HTTPS.
 
-Source: `src/app.js` handles UI, `src/model.js` handles validation/search, `src/store.js` handles IndexedDB transactions, and `src/i18n.js` handles interface translations. DOM text is inserted with `textContent`; imported image URLs are restricted to supported inline image types. There are no external runtime dependencies. See [architecture](docs/ARCHITECTURE.md).
+## Development and contributing
+
+Small ES modules, native dialogs, IndexedDB and CSS; no framework rewrite needed. Tests cover old database upgrades, atomic writes, history, graph constraints, bilingual search, backup limits/round trips and stale-write protection after erasure. Browser QA checks desktop/mobile, both languages, photos, persistence and worker-based backup flows. Broader screen-reader/device testing is welcome.
+
+Start with [CONTRIBUTING.md](CONTRIBUTING.md), [architecture](docs/ARCHITECTURE.md), [good first tasks](docs/GOOD_FIRST_ISSUES.md) and the [code of conduct](CODE_OF_CONDUCT.md). See [release notes](CHANGELOG.md), [milestone verification](docs/IMPLEMENTATION_LOG.md) and the honest [open-source readiness assessment](docs/OPEN_SOURCE_READINESS.md).
 
 ## GitHub updates
 
-Saving a file on your computer does not update GitHub. After reviewing and testing a change, commit and push it:
-
-```sh
-git add .
-git commit -m "Describe the change"
-git push
-```
-
-The included CI workflow checks each push and pull request. The Pages workflow deploys changes pushed to `main` after GitHub Pages is enabled under **Settings → Pages → Source → GitHub Actions**. Updating the code and deploying the website are separate operations. Neither operation synchronizes people's stored items.
-
-## First release scope
-
-Version 0.3.0 is a working local-first prototype. Nested storage locations, fuzzy/conversational search, recognition, voice, history, erase-all, encrypted sync and installable offline support are not implemented yet. See the prioritized [roadmap](docs/ROADMAP.md) and [project vision](docs/VISION.md).
-
-## Optional AI services
-
-None are required or integrated in this release. Photos are resized and stored locally, without object recognition. A future optional AI adapter must obtain explicit consent before sending any household photo or text off-device, distinguish suggestions from confirmed records and protect credentials on a backend. Basic functionality must remain free of paid API requirements.
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) and the [code of conduct](CODE_OF_CONDUCT.md). Please use fictional items and locations in public issues and screenshots.
+Saving a local file does not update GitHub. After testing, commit and push. CI checks pushes and pull requests; changes pushed to `main` deploy through the GitHub Pages workflow. Neither source updates nor deployments transfer anyone's locally stored inventory.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
-
-Legacy item-only category labels from older backups are preserved, but creating new one-time categories is no longer offered in the interface.
+MIT — [LICENSE](LICENSE).

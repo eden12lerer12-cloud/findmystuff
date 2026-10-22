@@ -1,57 +1,40 @@
 # Architecture
 
-FindMyStuff uses native browser capabilities and small JavaScript modules. No framework, database service, paid API or account is needed to run the current application.
+FindMyStuff is a buildless, local-first application using native browser APIs. There are no external runtime dependencies or paid services.
 
-```text
-index.html + styles.css
-        │
-    src/app.js ─── src/i18n.js (interface text and direction)
-        ├──────── src/model.js (record validation and search)
-        └──────── src/store.js (IndexedDB transactions)
-```
+| Module                                                            | Responsibility                                                        |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `app.js`, `i18n.js`, `preferences.js`                             | Inventory UI, bilingual text, optional local preferences              |
+| `home-ui.js`, `catalog-ui.js`                                     | Native home tree and list management dialogs                          |
+| `model.js`, `locations.js`                                        | Validated data contracts, location graph and history                  |
+| `search.js`, `text.js`                                            | Deterministic bilingual synonyms/typos/normalization                  |
+| `store.js`                                                        | IndexedDB migrations and atomic transactions                          |
+| `backup-core.js`, `backup-worker.js`, `backup-ui.js`, `limits.js` | Bounded validated backup preparation, confirmation and atomic restore |
 
-## Data contracts
+## Data and migration
 
-- Database: `where-did-i-put-it`, version 2, object stores `items` and `settings`, key path `id`. The upgrade adds a catalog and preserves version 1 items unchanged.
-- Record fields: `id`, `name`, `room`, `location`, `category`, `notes`, `image`, `updatedAt`, plus optional item-only `categoryLabel`.
-- `updatedAt` is the timestamp of a user's saved record, not a sensor observation.
-- Category IDs are language-independent. Rooms, locations, names and notes are user text and are never translated by changing the UI language.
-- Images are JPEG data URLs after local resizing. Imported PNG/WebP data URLs are accepted too. No external photo URLs are loaded.
-- JSON backup: `{ app: 'where-did-i-put-it', version: 2, exportedAt, items, catalog }`. Version 1 imports remain supported. Renaming the product does not rename the application ID.
-- Language preference is the non-sensitive localStorage key `findmystuff-language`. Failure to persist that preference does not disable the app.
+Database `where-did-i-put-it`, version **3**, stores `items` and `settings`, both keyed by `id`. Upgrade preserves every old item and identifier exactly. Existing saved room IDs are retained; room names in old items seed missing presets up to the catalog bound. Legacy location text is never guessed into a hierarchy. See [the schema defined before migration](SCHEMA_V3.md).
 
-Validation completes before import writes begin. All records in an import are written in one transaction. Same-ID imports replace existing records only after user confirmation. Other records are retained. Cross-tab messages request a fresh database read; the channel does not transport private item contents.
+Items retain `id`, `name`, `room`, `location`, `category`, `notes`, `image`, `updatedAt` and optional legacy `categoryLabel`. Additive fields are `locationId`, `locationRecordedAt` and `history`. History records confirmed location snapshots, not physical sensor observations. Updating only notes/photos or renaming a linked node adds no move. Manual locations remain valid. A structured link resolves the current room/path for display; historical labels stay unchanged.
 
-## UI boundaries
+The catalog in settings contains category, location and room arrays. IDs are stable and language-independent. Structured locations have optional `roomId`, `parentId`, `kind`. Validation checks references, cycles, ownership and depth. Catalog/item changes share transactions. Removing a category reassigns to General; removing a leaf detaches links while preserving resolved text; parents with children and rooms with storage nodes cannot be removed.
 
-The current single-screen UI renders an inventory with filters and native modal dialogs. Values from users and backups are inserted as text rather than HTML. CSP restricts resources to the app origin and inline/local images. There is no AI integration and no automatic network synchronization.
+## Backups and deletion
 
-The UI controller is intentionally small for now. Extract controllers as My Home, item history and settings arrive. Keep search/validation and storage independent of UI translation. A full framework rewrite is unnecessary for the next milestones.
+JSON `{app:'where-did-i-put-it',version:3,exportedAt,catalog,items}`. Versions 1/2/3 import. All input is validated before writing. Lists merge by ID, preserving existing names; existing items are skipped by default or replaced only after explicit choice. A single transaction prevents partial writes. Workers keep preparation/JSON processing off the main thread; cancel terminates preparation/preview. Commit is atomic and cannot be interrupted through the UI.
 
-## Future adapters and migrations
+Export validates references, uniqueness and UTF-8 byte size before creating a downloadable Blob. Both directions share 50 MiB/20,000-item limits. Oversized data is refused rather than truncated. Worker availability and sufficient browser memory/quota remain required. Multipart backups are future work.
 
-Do not call a cloud AI service directly from this browser application with an embedded key. Future recognition/voice providers must be optional, explicitly consented and isolated behind adapters. Keep confirmed inventory separate from suggestions.
+Erase-all clears this app's items/settings and restores an empty default catalog in one transaction. It changes a generation token. Stale imported bundles and editor drafts cannot restore pre-erase data. BroadcastChannel sends only change/erase notifications, never inventory contents; other tabs cancel workers, clear drafts/undo and reread storage. Focus refresh also checks generation for missed notifications. Tests exercise erasure in an isolated database.
 
-Independent rooms and nested locations will require an additive schema migration and versioned backup changes. Before implementing that, fix large-backup recovery, add migration fixtures and document the schema. Maintain compatibility with version 1 records and backups. See [ROADMAP.md](ROADMAP.md).
+## Interface and security
 
-## Verification
+User text uses `textContent`, never injected HTML. Images are local JPEG/PNG/WebP data URLs; external photo URLs are rejected. CSP allows same-origin scripts/styles/workers and local images; no third-party scripts, telemetry or remote fonts. Optional preferences use `findmystuff-language`, `theme`, `onboarding`, `recent-locations` keys (the same prefix applies to all). Recent places store at most six opaque IDs. Failure to persist preferences does not block inventory use.
 
-`npm test` uses Node's built-in test runner. `npm run build` copies only application runtime files to `dist/`. `npm start` serves the project on loopback for local development; it is not a production server. GitHub workflows run tests/builds and can deploy the static artifact after Pages is enabled. Browser-level persistence, photo and backup flows have been checked manually; automated browser coverage remains a roadmap item.
+Inventory renders 36 cards at a time. Search is debounced; finite synonyms and conservative Levenshtein distance are local. IndexedDB snapshots still load records into memory. Bounded DOM rendering is not a claim of unlimited-scale performance.
 
-## Reusable options and one-time values
+## Hosting and future adapters
 
-`src/catalog-ui.js` manages the category/place dialog. `settings` stores a `catalog` record with category, location and saved-room arrays. Older catalogs without a rooms field default to an empty room list. Preset IDs are stable; custom names remain user text. General is the protected fallback. Removing a category reassigns its items atomically without changing their timestamps or other fields. Places are suggestions: deleting a preset does not rewrite any item location.
+Relative asset/module paths support GitHub Pages under `/findmystuff/`. Build copies only runtime files; source/tests/docs/private backups are not deployed. Production path validation is separate from the development server.
 
-An optional legacy `categoryLabel` on a General item remains readable for compatibility. New one-time categories are no longer available in the UI; editing unrelated fields preserves the legacy label. Locations remain text, and typed values do not implicitly create presets. Version 2 backups preserve empty presets and one-time labels. Imports merge lists by ID and retain current names when a matching ID already exists. All item references are validated against the merged catalog before writes.
-
-Automated storage tests use the development-only `fake-indexeddb` package; the shipped application has no external runtime dependency. Run `npm ci` before tests.
-
-## Item details and quick creation
-
-The inventory card has a keyboard-accessible open button across its image and content; Edit/Delete remain separate controls. A read-only native dialog shows the recorded room, location, category, notes, photo and timestamp, with a separate Edit action. The category picker includes an Add action. Quick category/room creation selects the new option and returns to the existing draft without resetting its fields. Room presets are included in version 2 backups as an additive optional catalog field; item room strings are preserved.
-
-## Stability milestone: backup processing
-
-`src/limits.js` is the single source of export/import bounds: 50 MiB and 20,000 items. `backup-core.js` validates records and measures UTF-8 bytes incrementally before constructing a Blob; no oversized or partial backup is downloaded. `backup-worker.js` reads the database and processes JSON off the UI thread. On import it retains the validated bundle in worker memory until the user confirms, then performs one atomic transaction. Preview reports new versus existing IDs. Existing records are skipped by default, with the existence check performed inside the write transaction. Replacement is explicit. Canceling preparation or preview terminates the worker without a write. Cancel is disabled only during the short atomic commit.
-
-Worker support is required for backup processing, with a clear fallback message when unavailable. Original inventories above the safety bounds remain untouched; multipart backups are not yet implemented. Version 1/2 files still import. The storage schema is unchanged for this milestone.
+No AI/photo recognition or voice provider is integrated. Any future external processing requires explicit informed consent and backend credential protection. Confirm suggestions before saving. QR links must contain opaque location IDs only and never expose inventory publicly. Offline caching must be scoped to static app assets. See [ROADMAP.md](ROADMAP.md).

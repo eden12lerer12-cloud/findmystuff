@@ -25,3 +25,11 @@ Added persisted Light/Dark/System appearance, optional four-step onboarding, rec
 Validation: 45 automated tests, build, browser checks at 390 px (no horizontal overflow), Hebrew RTL/English LTR, theme persistence after reload, optional guide dismissal and erase-dialog cancellation. Erasure and stale-write rollback tested only against isolated fake IndexedDB, never the live inventory. Browser console had no warnings/errors. Screenshots show fictional examples.
 
 Limits: storage quota/browser eviction still require private backups. Large inventories remain in memory; pagination bounds DOM work, not database size. Broader screen-reader and device testing needs outside contributors. Next: production path and public release verification.
+
+## Milestone 4 — Public release preparation
+
+Verified repository owner/name, origin, `main` default branch and Pages `workflow` source with HTTPS. Prepared v0.4.0, updated README/screenshots, architecture/schema references, contribution/security docs, roadmap, release notes, beginner tasks and Dependabot. Added exact-path `--dist --base /findmystuff` production preview.
+
+Validation before push: clean `npm ci`, 45 passing tests, static build, production dependency audit (no runtime dependencies), diff whitespace check and live browser from the built `/findmystuff/` path. All modules/CSS/icons loaded; version metadata showed 0.4.0, three original fictional samples persisted and details exposed separate Edit/Delete. No credentials or personal inventories are included in the runtime artifact. Source and Pages deploy verification follow below.
+
+Known risks: external testing and long-term adoption remain unverified; static hosting has ordinary provider request logs. Advanced features are intentionally separate increments. The readiness document records actual zero-star/zero-fork metrics and one maintainer account, with no invented users.

@@ -1,59 +1,29 @@
-# FindMyStuff roadmap
+# Incremental roadmap
 
-This is an implementation sequence, not a promise that planned capabilities already exist. The product retrieves user-recorded locations; it does not locate objects in real time. The original brief is in [VISION.md](VISION.md).
+The [mission](MISSION.md) is the long-term direction. This list distinguishes shipped features from future work.
 
-## Milestone 0 — trustworthy bilingual baseline
+## Completed for 0.4.0
 
-- Existing manual inventory, editing, photos, search, persistent storage and backup.
-- Hebrew/English UI, RTL/LTR switching, accurate “last recorded” wording.
-- Public contribution documentation, license, issue templates, architecture and tests.
-- No changes to stored inventory fields or IDs.
+1. Stability: clean dependency install, shared export/import bounds, validated background backup work, duplicate preview/default preservation, cancel and atomic restore. Old backup/database fixtures pass.
+2. Organization: additive v3 schema, nested home tree/renaming/descendant browsing, manual fallback, recorded location history and bilingual local search.
+3. UX: quick add, details actions, light/dark/system themes, mobile RTL/LTR, optional onboarding, recent locations, incremental card rendering and explicit erase-all.
+4. Release preparation: static build, Pages pipeline, fictional opt-in demo, feedback warning, community/security/dependency documentation and honest readiness assessment. See [verification log](IMPLEMENTATION_LOG.md) for actual deployment evidence.
 
-Acceptance: existing records survive a language change and refresh; English and Hebrew user flows work; backups still import; tests and static build pass.
+## Milestone 5 — small, opt-in extensions
 
-## Completed follow-up — reusable and one-time options
+Implement and verify in separate increments, keeping the initial release simple:
 
-Version 0.2 adds manageable category and flat storage-place lists, item-only category labels, and version 2 backup metadata with version 1 import support. Storage migration and atomic reassignment are covered by tests. Version 0.3 adds independently saved rooms, quick creation from the item form and a read-only details dialog. New one-time categories were removed at the user’s request; legacy backup labels stay compatible. This is not a nested location hierarchy.
+- Printable QR labels linking to opaque local location IDs. Explain same-browser/device limits. Never embed inventory, names or photos in public URLs.
+- Local collections for related items, independent of physical storage. Preserve memberships in backups, avoid deleting items when deleting groups.
+- Separate moving checklist using selected items/boxes with confirmed packing status, not automatic physical tracking.
+- Installable offline PWA: scoped static-asset allowlist, explicit update behavior, no private-data response caching. Check offline startup and backup worker loading under Pages path.
+- Optional voice input with clear disclosure that some browsers send audio to a recognition service; detect support, require opt-in/microphone consent, preview parsed fields and confirm manually.
+- Optional photo recognition remains an experiment: provider selection, explicit photo-upload consent, uncertain suggestions and user confirmation. No credentials in frontend, no paid default or mandatory service.
 
-## Milestone 1 — reliable data recovery
+## Reliability and community follow-ups
 
-Highest priority before structural migrations:
-
-- Make every successful export restorable, including collections beyond current import limits. Prefer bounded backup parts with clear file naming, manifest and complete-import validation.
-- Keep imports atomic and retain compatibility with current version 1 backups.
-- Add an explicit erase-all workflow with confirmation and cross-tab cleanup; never erase as a migration workaround.
-- Cover export/import boundaries, storage failure and restore in automated browser tests.
-
-Acceptance: large inventories round-trip without loss; malformed/incomplete backups leave existing records intact; erase-all actually removes inventory and cached undo state.
-
-## Milestone 2 — My Home: rooms and nested storage
-
-Smallest core organizational milestone after recovery:
-
-- Create independent rooms, even when empty.
-- Add storage nodes with stable IDs, room ID, optional parent ID and name.
-- Move an item by selecting a location path; show all descendants of a room or storage node.
-- Prevent cycles; define behavior for deleting occupied locations and duplicate names.
-- Migrate existing room/location strings without losing spelling, photos, IDs or notes. Preserve legacy strings until migration is verified. Ship a versioned backup migration with the database migration.
-
-Proposed storage direction: additive `rooms` and `locations` stores and an optional item `locationId`. Keep current fields for compatibility initially. Document and review the exact schema before implementation; do not commit to a frontend framework or server infrastructure.
-
-Acceptance: fresh and upgraded databases work; migration preserves the baseline fixture and backups; a user can create a room, add a shelf, move an item there and retrieve it.
-
-## Milestone 3 — smarter local search and item details
-
-- Extract a dedicated search module. Add tested English/Hebrew synonym groups, conservative fuzzy matching and room/date intents.
-- Show why a result matched; distinguish exact matches from suggestions.
-- Establish a bilingual query/expected-result dataset and evaluate improvements before semantic AI.
-- Add optional location history and a details screen with the latest confirmed record.
-
-## Milestone 4 — optional input assistance
-
-- Natural-language registration proposes structured fields; the user confirms before save.
-- Optional speech adapter with availability detection and manual fallback. Explain if the chosen speech provider sends audio off-device.
-- Image recognition adapter remains off by default. Clearly describe the service, photo transmission and cost before explicit consent. Store suggestions separately from confirmed inventory. Keep credentials on a secure backend, never in frontend code.
-- Basic inventory remains usable without paid services or accounts.
-
-## Later — community-led expansion
-
-Offline installation, QR labels, optional encrypted synchronization, explicit household permissions and additional languages follow actual user needs. Each requires its own privacy and migration design. Do not expose inventories through public APIs.
+- Multipart backup design for inventories exceeding bounds; never weaken import validation.
+- Broader bilingual query evaluation, explain approximate matches and improve Arabic/Hebrew keyboard/device testing based on real bug reports.
+- Automated browser accessibility/mobile checks, storage quota failures and larger-inventory benchmarks.
+- External testers and contributors, reproducible public issues using fictional data and releases tied to verified fixes.
+- Encrypted cross-device sync only after a separate privacy/permissions design. No synchronization is currently promised.
