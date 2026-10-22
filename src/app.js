@@ -1,6 +1,13 @@
-import { categories, filterItems, validateItem, parseBackup } from "./model.js";
-import { allItems, mutate } from "./store.js";
+import {
+  categories,
+  defaultCatalog,
+  filterItems,
+  validateItem,
+  parseBackupBundle,
+} from "./model.js";
+import { snapshot, mutate } from "./store.js";
 import { applyTranslations, translate } from "./i18n.js";
+import { createCatalogManager } from "./catalog-ui.js";
 const $ = (id) => document.getElementById(id);
 let language = "he";
 try {
@@ -17,17 +24,15 @@ function applyLanguage() {
     "aria-label",
     language === "he" ? "Switch to English" : "מעבר לעברית",
   );
-  for (const id of ["category", "item-category"])
-    for (const option of $(id).options)
-      option.textContent = option.value
-        ? `${categories[option.value][0]} ${t(`category_${option.value}`)}`
-        : t("allCategories");
+  renderCatalogOptions();
 }
 let items = [],
+  catalog = defaultCatalog(),
   room = "",
   editingId = null,
   image = "",
   pendingImport = [],
+  pendingCatalog = null,
   deletedItem = null,
   imageBusy = false,
   ready = false,
@@ -42,6 +47,76 @@ function node(tag, className, text) {
   if (text != null) el.textContent = text;
   return el;
 }
+function categoryName(id) {
+  const preset = catalog.categories.find((p) => p.id === id);
+  return Object.hasOwn(categories, id)
+    ? t(`category_${id}`)
+    : (preset?.name ?? t("category_general"));
+}
+function categoryIcon(id) {
+  return Object.hasOwn(categories, id) ? categories[id][0] : "🏷️";
+}
+function updateOneTimeField() {
+  const once = $("item-category").value === "__once__";
+  $("one-time-field").hidden = !once;
+  $("one-time-category").required = once;
+}
+function renderCatalogOptions() {
+  for (const id of ["category", "item-category"]) {
+    const previous = $(id).value;
+    const options = catalog.categories.map((preset) => {
+      const option = node(
+        "option",
+        "",
+        `${categoryIcon(preset.id)} ${categoryName(preset.id)}`,
+      );
+      option.value = preset.id;
+      return option;
+    });
+    const special = node(
+      "option",
+      "",
+      t(id === "category" ? "allCategories" : "oneTimeCategory"),
+    );
+    special.value = id === "category" ? "" : "__once__";
+    $(id).replaceChildren(
+      ...(id === "category" ? [special, ...options] : [...options, special]),
+    );
+    $(id).value =
+      (previous === "__once__" && id === "item-category") ||
+      catalog.categories.some((p) => p.id === previous)
+        ? previous
+        : id === "category"
+          ? ""
+          : "general";
+  }
+  $("location-options").replaceChildren(
+    ...catalog.locations.map((preset) => {
+      const option = node("option");
+      option.value = preset.name;
+      return option;
+    }),
+  );
+  updateOneTimeField();
+}
+const catalogManager = createCatalogManager({
+  getState: () => ({ items, catalog }),
+  t,
+  label: (preset, type) =>
+    type === "categories" ? categoryName(preset.id) : preset.name,
+  onChange: async () => {
+    await refresh();
+    channel?.postMessage("changed");
+  },
+  onCreated: (type, preset) => {
+    if (!$("editor").open) return;
+    if (type === "categories") {
+      $("item-category").value = preset.id;
+      updateOneTimeField();
+    } else $("item-location").value = preset.name;
+  },
+});
+$("item-category").addEventListener("change", updateOneTimeField);
 function toast(text, undo = false) {
   $("toast-text").textContent = text;
   $("undo").hidden = !undo;
@@ -52,11 +127,11 @@ function fail(error) {
   toast(t("storageError"));
 }
 async function refresh() {
-  items = await allItems();
+  ({ items, catalog } = await snapshot());
   render();
 }
-async function saveChanges(changes, removedId) {
-  await mutate(changes, removedId);
+async function saveChanges(changes, removedId, importedCatalog) {
+  await mutate(changes, removedId, importedCatalog);
   await refresh();
   channel?.postMessage("changed");
 }
@@ -67,6 +142,8 @@ function resetFilters() {
   render();
 }
 function render() {
+  renderCatalogOptions();
+  catalogManager.render();
   const rooms = [...new Set(items.map((i) => i.room))].sort((a, b) =>
     a.localeCompare(b, language),
   );
@@ -116,11 +193,17 @@ function itemCard(item) {
     photo.loading = "lazy";
     visual.append(photo);
   } else {
-    const emoji = node("span", "", categories[item.category][0]);
+    const emoji = node("span", "", categoryIcon(item.category));
     emoji.setAttribute("aria-hidden", "true");
     visual.append(emoji);
   }
-  visual.append(node("span", "item-category", t(`category_${item.category}`)));
+  visual.append(
+    node(
+      "span",
+      "item-category",
+      item.categoryLabel || categoryName(item.category),
+    ),
+  );
   const body = node("div", "item-body");
   body.append(node("h3", "", item.name));
   body.append(node("p", "last-recorded", t("lastRecorded")));
@@ -182,6 +265,7 @@ function openEditor(item) {
   }
   editorSession++;
   $("item-form").reset();
+  renderCatalogOptions();
   $("form-error").textContent = "";
   editingId = item?.id ?? null;
   image = item?.image ?? "";
@@ -192,6 +276,11 @@ function openEditor(item) {
   if (item)
     for (const name of ["name", "room", "location", "category", "notes"])
       $(`item-${name}`).value = item[name];
+  if (item?.categoryLabel) {
+    $("item-category").value = "__once__";
+    $("one-time-category").value = item.categoryLabel;
+  }
+  updateOneTimeField();
   updatePhoto();
   $("editor").showModal();
   $("item-name").focus();
@@ -203,28 +292,31 @@ for (const id of ["close-editor", "cancel-editor"])
 for (const id of ["search", "category", "sort"])
   $(id).addEventListener(id === "search" ? "input" : "change", render);
 $("clear-filters").onclick = resetFilters;
-for (const [value, [emoji, label]] of Object.entries(categories))
-  for (const id of ["category", "item-category"]) {
-    const option = node("option", "", `${emoji} ${label}`);
-    option.value = value;
-    $(id).append(option);
-  }
 $("item-form").onsubmit = async (event) => {
   event.preventDefault();
   if (imageBusy) return;
   $("save-item").disabled = true;
   $("form-error").textContent = "";
   try {
-    const item = validateItem({
-      id: editingId ?? crypto.randomUUID(),
-      name: $("item-name").value,
-      room: $("item-room").value,
-      location: $("item-location").value,
-      category: $("item-category").value,
-      notes: $("item-notes").value,
-      image,
-      updatedAt: new Date().toISOString(),
-    });
+    const item = validateItem(
+      {
+        id: editingId ?? crypto.randomUUID(),
+        name: $("item-name").value,
+        room: $("item-room").value,
+        location: $("item-location").value,
+        category:
+          $("item-category").value === "__once__"
+            ? "general"
+            : $("item-category").value,
+        ...($("item-category").value === "__once__"
+          ? { categoryLabel: $("one-time-category").value }
+          : {}),
+        notes: $("item-notes").value,
+        image,
+        updatedAt: new Date().toISOString(),
+      },
+      catalog,
+    );
     await saveChanges([item]);
     resetFilters();
     $("editor").close();
@@ -303,7 +395,14 @@ $("remove-photo").onclick = () => {
 $("undo").onclick = async () => {
   if (!deletedItem) return;
   try {
-    await saveChanges([deletedItem]);
+    await saveChanges([
+      {
+        ...deletedItem,
+        category: catalog.categories.some((p) => p.id === deletedItem.category)
+          ? deletedItem.category
+          : "general",
+      },
+    ]);
     deletedItem = null;
     toast(t("restored"));
   } catch (error) {
@@ -341,7 +440,9 @@ $("demo").onclick = async () => {
         name,
         room,
         location,
-        category,
+        category: catalog.categories.some((p) => p.id === category)
+          ? category
+          : "general",
         notes: t("demoNote"),
         image: "",
         updatedAt: new Date().toISOString(),
@@ -354,13 +455,14 @@ $("demo").onclick = async () => {
 };
 $("export").onclick = async () => {
   try {
-    const fresh = await allItems();
+    const fresh = await snapshot();
     const data = JSON.stringify(
       {
         app: "where-did-i-put-it",
-        version: 1,
+        version: 2,
         exportedAt: new Date().toISOString(),
-        items: fresh,
+        items: fresh.items,
+        catalog: fresh.catalog,
       },
       null,
       2,
@@ -386,16 +488,22 @@ $("import-file").onchange = async () => {
   if (!file) return;
   try {
     if (file.size > 50 * 1024 * 1024) throw new Error("Too large");
-    pendingImport = parseBackup(await file.text());
+    const parsed = parseBackupBundle(await file.text());
+    pendingImport = parsed.items;
+    pendingCatalog = parsed.catalog;
     const currentIds = new Set(items.map((i) => i.id));
     const overlaps = pendingImport.filter((i) => currentIds.has(i.id)).length;
-    $("backup-summary").textContent = t("importSummary", {
-      count: pendingImport.length,
-      overlaps,
-    });
+    $("backup-summary").textContent =
+      t("importSummary", {
+        count: pendingImport.length,
+        overlaps,
+      }) +
+      " " +
+      t("importCatalogNotice");
     $("backup-dialog").showModal();
   } catch {
     pendingImport = [];
+    pendingCatalog = null;
     toast(t("backupError"));
   } finally {
     $("import-file").value = "";
@@ -403,13 +511,15 @@ $("import-file").onchange = async () => {
 };
 $("cancel-import").onclick = () => {
   pendingImport = [];
+  pendingCatalog = null;
   $("backup-dialog").close();
 };
 $("confirm-import").onclick = async () => {
   $("confirm-import").disabled = true;
   try {
-    await saveChanges(pendingImport);
+    await saveChanges(pendingImport, undefined, pendingCatalog);
     pendingImport = [];
+    pendingCatalog = null;
     resetFilters();
     $("backup-dialog").close();
     toast(t("imported"));
@@ -435,7 +545,8 @@ document.addEventListener("keydown", (event) => {
     event.key === "/" &&
     !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName) &&
     !$("editor").open &&
-    !$("backup-dialog").open
+    !$("backup-dialog").open &&
+    !$("catalog-dialog").open
   ) {
     event.preventDefault();
     $("search").focus();

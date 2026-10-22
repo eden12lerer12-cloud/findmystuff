@@ -1117,3 +1117,134 @@ textarea::placeholder {
 .item-category {
   color: #655970;
 }
+.catalog-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.field-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+.form-content .field-actions {
+  margin-top: -10px;
+}
+.field-help {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--muted);
+  font-weight: 400;
+}
+.catalog-body {
+  padding: 0 25px 20px;
+}
+.preset-form {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  margin: 20px 0;
+}
+.preset-form label {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  font-size: 13px;
+}
+.preset-form input {
+  min-width: 0;
+  width: 100%;
+  border: 1px solid var(--line);
+  padding: 12px;
+  border-radius: 9px;
+}
+.preset-list {
+  max-height: 35dvh;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.preset-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--line);
+  padding: 10px 13px;
+}
+.preset-row:last-child {
+  border: 0;
+}
+.preset-row > span {
+  overflow-wrap: anywhere;
+  flex: 1;
+}
+.preset-row small {
+  font-size: 10px;
+  color: var(--muted);
+}
+.preset-row button {
+  font-size: 11px;
+}
+.preset-confirm {
+  background: var(--lavender);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 16px;
+}
+.preset-confirm h3 {
+  margin: 0;
+  font-size: 16px;
+}
+.preset-confirm p {
+  font-size: 13px;
+  line-height: 1.8;
+}
+.catalog-body .form-error:empty {
+  display: none;
+}
+.form-content #one-time-field[hidden] {
+  display: none;
+}
+#one-time-field {
+  background: var(--lavender);
+  border-radius: 10px;
+  padding: 12px;
+}
+.catalog-toolbar .text-button {
+  font-size: 11px;
+}
+@media (max-width: 600px) {
+  .catalog-toolbar {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .catalog-toolbar .category-label {
+    margin: 0;
+  }
+  .catalog-body {
+    padding: 0 18px 18px;
+  }
+  .preset-form {
+    flex-wrap: wrap;
+  }
+  .preset-form label {
+    min-width: 180px;
+  }
+  .preset-row {
+    flex-wrap: wrap;
+  }
+  .preset-row > span {
+    min-width: 100px;
+  }
+  .preset-row button {
+    padding: 6px;
+  }
+  .field-actions .text-button {
+    padding-inline: 0;
+  }
+}

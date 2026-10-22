@@ -12,13 +12,16 @@ Install Node.js 22 or newer, then:
 npm start
 ```
 
-Open http://127.0.0.1:4173. There are no dependencies to install, no account requirement and no API keys.
+Open http://127.0.0.1:4173. There are no runtime dependencies to install, no account requirement and no API keys. Run `npm ci` to install the development-only IndexedDB test helper before running tests.
 
 ## Features
 
 - Add, edit and delete items; undo the most recent deletion during the current session.
 - Search names, locations and notes, including Hebrew text with vowel marks.
 - Filter by room or category; sort by name or most recent update.
+- Add or remove reusable categories and storage places from the dashboard or item editor.
+- Use a one-time category or typed location without adding it to the reusable lists.
+- Category removal moves affected items to General; removing a place never changes previously recorded locations. General stays as a protected fallback.
 - Choose a photo from your device, or use the camera option offered by your mobile browser.
 - Resize images locally before saving. Supported formats: JPEG, PNG and WebP, up to 12 MB input.
 - Export a JSON backup including photos; preview an import summary before merging it.
@@ -32,16 +35,17 @@ Records and photos are stored in IndexedDB for this browser, device and origin. 
 
 This version does not have accounts, cloud sync, background backup or a service worker for offline installation. Clearing site data or losing the device can lose records. Localhost, a deployed website and another browser have separate storage. Export a backup to move your data.
 
-**Backup files contain unencrypted private data and photos.** Store them privately and do not commit them to the source repository. Imports merge by ID: an imported item replaces an existing item with the same ID. Other items stay unchanged. Imports are limited to 50 MB and 2,000 items; export size depends on your collection. **Known limitation:** exports beyond either import limit cannot currently be restored through the app. Bounded, round-trippable backups are the next priority; see the [review](docs/AUDIT.md) and [roadmap](docs/ROADMAP.md).
+**Backup files contain unencrypted private data and photos.** Store them privately and do not commit them to the source repository. Version 2 backups include reusable category and place lists; version 1 backups still import. Lists merge by ID without removing existing options. Imports merge by item ID: an imported item replaces an existing item with the same ID. Other items stay unchanged. Imports are limited to 50 MB and 2,000 items; export size depends on your collection. **Known limitation:** exports beyond either import limit cannot currently be restored through the app. Bounded, round-trippable backups are the next priority; see the [review](docs/AUDIT.md) and [roadmap](docs/ROADMAP.md).
 
 ## Development
 
 ```sh
+npm ci
 npm test
 npm run build
 ```
 
-`npm test` covers Hebrew search, combined filters, sorting, backup validation and translation completeness. `npm run build` creates a static `dist/` folder with only the application files. Serve `dist/` with any static HTTPS host.
+`npm test` covers Hebrew search, filters, sorting, backup validation, translation completeness, schema migration, category reassignment, item-only values and atomic import rollback. `npm run build` creates a static `dist/` folder with only the application files. Serve `dist/` with any static HTTPS host.
 
 Source: `src/app.js` handles UI, `src/model.js` handles validation/search, `src/store.js` handles IndexedDB transactions, and `src/i18n.js` handles interface translations. DOM text is inserted with `textContent`; imported image URLs are restricted to supported inline image types. There are no external runtime dependencies. See [architecture](docs/ARCHITECTURE.md).
 
@@ -59,7 +63,7 @@ The included CI workflow checks each push and pull request. The Pages workflow d
 
 ## First release scope
 
-Version 0.1.0 is a working local-first prototype. Independent rooms, nested storage locations, fuzzy/conversational search, recognition, voice, history, erase-all, encrypted sync and installable offline support are not implemented yet. See the prioritized [roadmap](docs/ROADMAP.md) and [project vision](docs/VISION.md).
+Version 0.2.0 is a working local-first prototype. Independent rooms, nested storage locations, fuzzy/conversational search, recognition, voice, history, erase-all, encrypted sync and installable offline support are not implemented yet. See the prioritized [roadmap](docs/ROADMAP.md) and [project vision](docs/VISION.md).
 
 ## Optional AI services
 

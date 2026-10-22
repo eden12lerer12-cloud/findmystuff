@@ -122,13 +122,29 @@
             aria-label="סינון לפי חדר"
             data-i18n-aria-label="roomFilter"
           ></div>
-          <label class="category-label"
-            ><span class="sr-only" data-i18n="categoryFilter"
-              >סינון לפי קטגוריה</span
-            ><select id="category">
-              <option value="" data-i18n="allCategories">כל הקטגוריות</option>
-            </select></label
-          >
+          <div class="catalog-toolbar">
+            <label class="category-label"
+              ><span class="sr-only" data-i18n="categoryFilter"
+                >סינון לפי קטגוריה</span
+              ><select id="category">
+                <option value="" data-i18n="allCategories">כל הקטגוריות</option>
+              </select></label
+            ><button
+              type="button"
+              id="manage-categories"
+              class="text-button"
+              data-i18n="manageCategories"
+            >
+              ניהול קטגוריות</button
+            ><button
+              type="button"
+              id="manage-locations"
+              class="text-button"
+              data-i18n="manageLocations"
+            >
+              ניהול מקומות אחסון
+            </button>
+          </div>
         </div>
         <p id="results-label" class="results-label" aria-live="polite"></p>
         <div id="items" class="items"></div>
@@ -267,16 +283,57 @@
               <select id="item-category" name="category"></select
             ></label>
           </div>
+          <div class="field-actions">
+            <button
+              type="button"
+              id="editor-categories"
+              class="text-button"
+              data-i18n="manageCategories"
+            >
+              ניהול קטגוריות
+            </button>
+          </div>
+          <label id="one-time-field" hidden
+            ><span id="one-time-label" data-i18n="oneTimeName"
+              >שם הקטגוריה החד־פעמית</span
+            ><input
+              aria-labelledby="one-time-label"
+              aria-describedby="one-time-help"
+              id="one-time-category"
+              maxlength="60"
+              autocomplete="off"
+            /><small
+              id="one-time-help"
+              class="field-help"
+              data-i18n="oneTimeHelp"
+              >נשמר רק לחפץ הזה ולא נוסף לרשימת הקטגוריות.</small
+            ></label
+          >
           <label
             ><span data-i18n="location">איפה בדיוק?</span>
             <input
               name="location"
               id="item-location"
+              list="location-options"
               required
               maxlength="180"
               placeholder="למשל, במגירה העליונה, בקופסה הכחולה"
               data-i18n-placeholder="locationPlaceholder" /></label
-          ><label
+          ><datalist id="location-options"></datalist>
+          <div class="field-actions">
+            <small class="field-help" data-i18n="locationHelp"
+              >בחר מקום שמור או הקלד מקום חד־פעמי. הקלדה לא משנה את
+              הרשימה.</small
+            ><button
+              type="button"
+              id="editor-locations"
+              class="text-button"
+              data-i18n="manageLocations"
+            >
+              ניהול מקומות אחסון
+            </button>
+          </div>
+          <label
             ><span data-i18n="notes">עוד משהו שכדאי לזכור</span>
             <span class="optional" data-i18n="optional">(לא חובה)</span
             ><textarea
@@ -318,6 +375,77 @@
             ביטול
           </button>
         </div>
+      </div>
+    </dialog>
+    <dialog id="catalog-dialog" aria-labelledby="catalog-title">
+      <div class="dialog-heading">
+        <h2 id="catalog-title"></h2>
+        <button
+          type="button"
+          id="catalog-close"
+          class="icon-button"
+          data-i18n-aria-label="close"
+          aria-label="סגירת החלון"
+        >
+          ×
+        </button>
+      </div>
+      <div class="catalog-body">
+        <p id="catalog-help" class="field-help"></p>
+        <form id="preset-form" class="preset-form">
+          <label
+            ><span id="preset-label"></span
+            ><input id="preset-name" required autocomplete="off" /></label
+          ><button
+            type="submit"
+            class="primary"
+            id="preset-add"
+            data-i18n="addPreset"
+          >
+            הוספה לרשימה
+          </button>
+        </form>
+        <p id="catalog-error" class="form-error" role="alert"></p>
+        <p id="catalog-status" class="field-help" role="status"></p>
+        <div id="preset-list" class="preset-list"></div>
+        <section
+          id="preset-confirm"
+          class="preset-confirm"
+          hidden
+          aria-labelledby="preset-confirm-title"
+        >
+          <h3 id="preset-confirm-title" data-i18n="deletePresetTitle">
+            הסרה מהרשימה
+          </h3>
+          <p id="preset-confirm-message"></p>
+          <div class="field-actions">
+            <button
+              type="button"
+              id="preset-confirm-delete"
+              class="secondary"
+              data-i18n="removePreset"
+            >
+              הסרה מהרשימה</button
+            ><button
+              type="button"
+              id="preset-cancel-delete"
+              class="secondary"
+              data-i18n="cancel"
+            >
+              ביטול
+            </button>
+          </div>
+        </section>
+      </div>
+      <div class="dialog-footer">
+        <button
+          type="button"
+          id="catalog-done"
+          class="primary"
+          data-i18n="done"
+        >
+          סיום
+        </button>
       </div>
     </dialog>
     <div id="toast" class="toast" role="status" hidden>

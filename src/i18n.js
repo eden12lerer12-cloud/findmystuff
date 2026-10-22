@@ -103,6 +103,34 @@ export const messages = {
     artTitle: "בדיוק כאן.",
     artLocation: "המגירה הקטנה, ליד הדלת",
     artCheck: "✓ מקום אחד פחות לחפש",
+    manageCategories: "ניהול קטגוריות",
+    manageLocations: "ניהול מקומות אחסון",
+    oneTimeCategory: "חד־פעמי — לחפץ הזה בלבד…",
+    oneTimeName: "שם הקטגוריה החד־פעמית",
+    oneTimeHelp: "נשמר רק לחפץ הזה ולא נוסף לרשימת הקטגוריות.",
+    locationHelp:
+      "בחר מקום שמור או הקלד מקום חד־פעמי. הקלדה לא משנה את הרשימה.",
+    categoryHelp:
+      "הוסף אפשרויות קבועות או הסר אותן. הסרת קטגוריה מעבירה את החפצים שבה לכללי, בלי למחוק אותם.",
+    newCategoryName: "שם קטגוריה חדשה",
+    newLocationName: "שם מקום אחסון חדש",
+    addPreset: "הוספה לרשימה",
+    removePreset: "הסרה מהרשימה",
+    removeNamedPreset: "הסרת {name} מהרשימה",
+    deletePresetTitle: "הסרה מהרשימה",
+    confirmCategoryDelete:
+      "להסיר את ״{name}״? החפצים בקטגוריה יעברו ל״כללי״. אף חפץ לא יימחק.",
+    confirmLocationDelete:
+      "להסיר את ״{name}״ מהרשימה? המיקום שכבר תועד בחפצים יישמר ללא שינוי.",
+    presetUses: "{count} חפצים",
+    fallbackCategory: "קטגוריית ברירת מחדל",
+    duplicatePreset: "השם הזה כבר קיים ברשימה.",
+    presetError: "לא הצלחנו לעדכן. בדוק את השם, את האחסון הפנוי ונסה שוב.",
+    presetAdded: "נוסף לרשימה. אפשר להוסיף עוד אפשרות או ללחוץ על סיום.",
+    presetRemoved: "האפשרות הוסרה מהרשימה. החפצים נשמרו.",
+    done: "סיום",
+    importCatalogNotice:
+      "הגיבוי כולל גם רשימות קטגוריות ומקומות. אפשרויות חסרות יתווספו; אפשרויות קיימות לא יימחקו.",
   },
   en: {
     pageTitle: "FindMyStuff — Where did I put it?",
@@ -211,6 +239,36 @@ export const messages = {
     artTitle: "Right here.",
     artLocation: "The small drawer by the door",
     artCheck: "✓ One less place to search",
+    manageCategories: "Manage categories",
+    manageLocations: "Manage storage places",
+    oneTimeCategory: "One-time — this item only…",
+    oneTimeName: "One-time category name",
+    oneTimeHelp:
+      "Saved only with this item, without adding it to the category list.",
+    locationHelp:
+      "Choose a saved place or type a one-time location. Typing does not change the list.",
+    categoryHelp:
+      "Add reusable options or remove them. Removing a category moves its items to General without deleting them.",
+    newCategoryName: "New category name",
+    newLocationName: "New storage place name",
+    addPreset: "Add to list",
+    removePreset: "Remove from list",
+    removeNamedPreset: "Remove {name} from list",
+    deletePresetTitle: "Remove from list",
+    confirmCategoryDelete:
+      "Remove “{name}”? Items in this category will move to General. No items will be deleted.",
+    confirmLocationDelete:
+      "Remove “{name}” from the list? Locations already recorded with items will stay unchanged.",
+    presetUses: "{count} items",
+    fallbackCategory: "Fallback category",
+    duplicatePreset: "That name is already in the list.",
+    presetError:
+      "Could not update. Check the name and available storage, then try again.",
+    presetAdded: "Added to the list. Add another option or select Done.",
+    presetRemoved: "Removed from the list. Your items were preserved.",
+    done: "Done",
+    importCatalogNotice:
+      "This backup also includes category and place lists. Missing options will be added; existing options will not be removed.",
   },
 };
 export const supportedLanguages = ["he", "en"];

@@ -12,12 +12,12 @@ index.html + styles.css
 
 ## Data contracts
 
-- Database: `where-did-i-put-it`, version 1, object store `items`, key path `id`.
-- Record fields: `id`, `name`, `room`, `location`, `category`, `notes`, `image`, `updatedAt`.
+- Database: `where-did-i-put-it`, version 2, object stores `items` and `settings`, key path `id`. The upgrade adds a catalog and preserves version 1 items unchanged.
+- Record fields: `id`, `name`, `room`, `location`, `category`, `notes`, `image`, `updatedAt`, plus optional item-only `categoryLabel`.
 - `updatedAt` is the timestamp of a user's saved record, not a sensor observation.
 - Category IDs are language-independent. Rooms, locations, names and notes are user text and are never translated by changing the UI language.
 - Images are JPEG data URLs after local resizing. Imported PNG/WebP data URLs are accepted too. No external photo URLs are loaded.
-- JSON backup: `{ app: 'where-did-i-put-it', version: 1, exportedAt, items }`. Renaming the product does not rename this format.
+- JSON backup: `{ app: 'where-did-i-put-it', version: 2, exportedAt, items, catalog }`. Version 1 imports remain supported. Renaming the product does not rename the application ID.
 - Language preference is the non-sensitive localStorage key `findmystuff-language`. Failure to persist that preference does not disable the app.
 
 Validation completes before import writes begin. All records in an import are written in one transaction. Same-ID imports replace existing records only after user confirmation. Other records are retained. Cross-tab messages request a fresh database read; the channel does not transport private item contents.
@@ -37,3 +37,11 @@ Independent rooms and nested locations will require an additive schema migration
 ## Verification
 
 `npm test` uses Node's built-in test runner. `npm run build` copies only application runtime files to `dist/`. `npm start` serves the project on loopback for local development; it is not a production server. GitHub workflows run tests/builds and can deploy the static artifact after Pages is enabled. Browser-level persistence, photo and backup flows have been checked manually; automated browser coverage remains a roadmap item.
+
+## Reusable options and one-time values
+
+`src/catalog-ui.js` manages the category/place dialog. `settings` stores a `catalog` record with category and location arrays. Preset IDs are stable; custom names remain user text. General is the protected fallback. Removing a category reassigns its items atomically without changing their timestamps or other fields. Places are suggestions: deleting a preset does not rewrite any item location.
+
+An optional `categoryLabel` on a General item represents a one-time category. It is not added to global options. Locations remain text, and typed values do not implicitly create presets. Version 2 backups preserve empty presets and one-time labels. Imports merge lists by ID and retain current names when a matching ID already exists. All item references are validated against the merged catalog before writes.
+
+Automated storage tests use the development-only `fake-indexeddb` package; the shipped application has no external runtime dependency. Run `npm ci` before tests.

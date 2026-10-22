@@ -27,7 +27,13 @@ export function filterItems(
         (!category || item.category === category) &&
         words.every((word) =>
           normalize(
-            [item.name, item.room, item.location, item.notes].join(" "),
+            [
+              item.name,
+              item.room,
+              item.location,
+              item.notes,
+              item.categoryLabel ?? "",
+            ].join(" "),
           ).includes(word),
         ),
     )
@@ -46,7 +52,50 @@ function field(value, max, required = false) {
     throw new Error("Invalid item field");
   return value.trim();
 }
-export function validateItem(item) {
+export function defaultCatalog() {
+  return {
+    categories: Object.entries(categories).map(([id, [, name]]) => ({
+      id,
+      name,
+    })),
+    locations: [],
+  };
+}
+export function validatePreset(preset, type) {
+  if (!preset || typeof preset !== "object") throw new Error("Invalid preset");
+  const id = field(preset.id, 80, true);
+  if (
+    !/^[a-zA-Z0-9_-]+$/.test(id) ||
+    ["__proto__", "__once__", "constructor", "prototype"].includes(id)
+  )
+    throw new Error("Invalid preset ID");
+  return {
+    id,
+    name: field(preset.name, type === "categories" ? 60 : 180, true),
+  };
+}
+export function validateCatalog(catalog) {
+  if (!catalog || typeof catalog !== "object")
+    throw new Error("Invalid catalog");
+  const result = {};
+  for (const [type, limit] of [
+    ["categories", 500],
+    ["locations", 1000],
+  ]) {
+    if (!Array.isArray(catalog[type]) || catalog[type].length > limit)
+      throw new Error("Invalid catalog list");
+    result[type] = catalog[type].map((preset) => validatePreset(preset, type));
+    if (
+      new Set(result[type].map((preset) => preset.id)).size !==
+      result[type].length
+    )
+      throw new Error("Duplicate preset IDs");
+  }
+  if (!result.categories.some((preset) => preset.id === "general"))
+    throw new Error("Missing fallback category");
+  return result;
+}
+export function validateItem(item, catalog = defaultCatalog()) {
   if (!item || typeof item !== "object" || Array.isArray(item))
     throw new Error("Invalid item");
   const image = field(item.image ?? "", 2000000);
@@ -56,8 +105,8 @@ export function validateItem(item) {
   )
     throw new Error("Invalid image");
   if (
-    !(item.category in categories) ||
-    !Object.hasOwn(categories, item.category)
+    typeof item.category !== "string" ||
+    !catalog.categories.some((preset) => preset.id === item.category)
   )
     throw new Error("Invalid category");
   if (
@@ -65,7 +114,7 @@ export function validateItem(item) {
     !Number.isFinite(Date.parse(item.updatedAt))
   )
     throw new Error("Invalid date");
-  return {
+  const result = {
     id: field(item.id, 80, true),
     name: field(item.name, 100, true),
     room: field(item.room, 80, true),
@@ -75,19 +124,30 @@ export function validateItem(item) {
     image,
     updatedAt: new Date(item.updatedAt).toISOString(),
   };
+  if (item.categoryLabel !== undefined) {
+    result.categoryLabel = field(item.categoryLabel, 60, true);
+    if (result.category !== "general")
+      throw new Error("One-time category must use the fallback ID");
+  }
+  return result;
 }
-export function parseBackup(text) {
+export function parseBackupBundle(text) {
   const backup = JSON.parse(text);
   if (
     !backup ||
     backup.app !== "where-did-i-put-it" ||
-    backup.version !== 1 ||
+    ![1, 2].includes(backup.version) ||
     !Array.isArray(backup.items) ||
     backup.items.length > 2000
   )
     throw new Error("Invalid backup");
-  const items = backup.items.map(validateItem);
+  const catalog =
+    backup.version === 1 ? defaultCatalog() : validateCatalog(backup.catalog);
+  const items = backup.items.map((item) => validateItem(item, catalog));
   if (new Set(items.map((i) => i.id)).size !== items.length)
     throw new Error("Duplicate IDs");
-  return items;
+  return { items, catalog };
+}
+export function parseBackup(text) {
+  return parseBackupBundle(text).items;
 }
