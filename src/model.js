@@ -1,4 +1,8 @@
 import { BACKUP_LIMITS } from "./limits.js";
+import { validateLocationGraph, itemPlace } from "./locations.js";
+import { normalize } from "./text.js";
+import { matchSearch } from "./search.js";
+export { normalize } from "./text.js";
 export const categories = {
   general: ["📦", "כללי"],
   documents: ["📄", "מסמכים"],
@@ -7,36 +11,34 @@ export const categories = {
   clothing: ["🧣", "ביגוד"],
   tools: ["🛠️", "כלי עבודה"],
 };
-export const normalize = (value) =>
-  String(value)
-    .normalize("NFKD")
-    .replace(/[\u0591-\u05C7]/g, "")
-    .toLocaleLowerCase("he")
-    .trim();
 export function filterItems(
   items,
   query = "",
   room = "",
   category = "",
   sort = "recent",
+  catalog = null,
 ) {
-  const words = normalize(query).split(/\s+/).filter(Boolean);
   return items
     .filter(
       (item) =>
-        (!room || item.room === room) &&
+        (!room ||
+          (catalog ? itemPlace(item, catalog).room : item.room) === room) &&
         (!category || item.category === category) &&
-        words.every((word) =>
-          normalize(
-            [
-              item.name,
-              item.room,
-              item.location,
-              item.notes,
-              item.categoryLabel ?? "",
-            ].join(" "),
-          ).includes(word),
-        ),
+        matchSearch(
+          [
+            item.name,
+            catalog ? itemPlace(item, catalog).room : item.room,
+            catalog ? itemPlace(item, catalog).location : item.location,
+            item.notes,
+            item.categoryLabel ?? "",
+            item.category,
+            catalog?.categories.find(
+              (category) => category.id === item.category,
+            )?.name ?? "",
+          ].join(" "),
+          query,
+        ).matches,
     )
     .sort((a, b) =>
       sort === "name"
@@ -73,7 +75,7 @@ export function validatePreset(preset, type) {
     )
   )
     throw new Error("Invalid preset ID");
-  return {
+  const result = {
     id,
     name: field(
       preset.name,
@@ -81,6 +83,18 @@ export function validatePreset(preset, type) {
       true,
     ),
   };
+  if (type === "locations") {
+    for (const key of ["roomId", "parentId"])
+      if (preset[key] != null) result[key] = field(preset[key], 80, true);
+    if (preset.kind !== undefined) {
+      if (
+        !["furniture", "shelf", "drawer", "box", "other"].includes(preset.kind)
+      )
+        throw new Error("Invalid location kind");
+      result.kind = preset.kind;
+    }
+  }
+  return result;
 }
 export function validateCatalog(catalog) {
   if (!catalog || typeof catalog !== "object")
@@ -104,7 +118,7 @@ export function validateCatalog(catalog) {
   }
   if (!result.categories.some((preset) => preset.id === "general"))
     throw new Error("Missing fallback category");
-  return result;
+  return validateLocationGraph(result);
 }
 export function validateItem(item, catalog = defaultCatalog()) {
   if (!item || typeof item !== "object" || Array.isArray(item))
@@ -128,8 +142,8 @@ export function validateItem(item, catalog = defaultCatalog()) {
   const result = {
     id: field(item.id, 80, true),
     name: field(item.name, 100, true),
-    room: field(item.room, 80, true),
-    location: field(item.location, 180, true),
+    room: field(item.room, 80),
+    location: field(item.location, 2000, true),
     notes: field(item.notes ?? "", 1200),
     category: item.category,
     image,
@@ -140,6 +154,39 @@ export function validateItem(item, catalog = defaultCatalog()) {
     if (result.category !== "general")
       throw new Error("One-time category must use the fallback ID");
   }
+  if (item.locationId !== undefined) {
+    result.locationId = field(item.locationId, 80, true);
+    if (!catalog.locations.some((node) => node.id === result.locationId))
+      throw new Error("Unknown item location");
+  }
+  if (item.locationRecordedAt !== undefined) {
+    if (
+      typeof item.locationRecordedAt !== "string" ||
+      !Number.isFinite(Date.parse(item.locationRecordedAt))
+    )
+      throw new Error("Invalid location date");
+    result.locationRecordedAt = new Date(item.locationRecordedAt).toISOString();
+  }
+  if (item.history !== undefined) {
+    if (!Array.isArray(item.history) || item.history.length > 1000)
+      throw new Error("Invalid history");
+    result.history = item.history.map((entry) => {
+      if (
+        !entry ||
+        typeof entry.recordedAt !== "string" ||
+        !Number.isFinite(Date.parse(entry.recordedAt))
+      )
+        throw new Error("Invalid history date");
+      return {
+        room: field(entry.room, 80),
+        location: field(entry.location, 2000, true),
+        recordedAt: new Date(entry.recordedAt).toISOString(),
+        ...(entry.locationId
+          ? { locationId: field(entry.locationId, 80, true) }
+          : {}),
+      };
+    });
+  }
   return result;
 }
 export function parseBackupBundle(text) {
@@ -149,7 +196,7 @@ export function validateBackupObject(backup) {
   if (
     !backup ||
     backup.app !== "where-did-i-put-it" ||
-    ![1, 2].includes(backup.version) ||
+    ![1, 2, 3].includes(backup.version) ||
     !Array.isArray(backup.items) ||
     backup.items.length > BACKUP_LIMITS.maxItems
   )

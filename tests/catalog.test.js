@@ -34,7 +34,8 @@ test("catalog migration and persistent operations preserve inventory", async (t)
     async () => {
       const state = await snapshot();
       assert.deepEqual(state.items, [legacyItem]);
-      assert.deepEqual(state.catalog, defaultCatalog());
+      assert.deepEqual(state.catalog.categories, defaultCatalog().categories);
+      assert.equal(state.catalog.rooms[0].name, legacyItem.room);
     },
   );
   let category, place;
@@ -103,11 +104,12 @@ test("catalog migration and persistent operations preserve inventory", async (t)
         category: category.id,
       };
       await mutate([custom]);
+      const stored = (await snapshot()).items.find((i) => i.id === custom.id);
       await removePreset("categories", category.id);
       const state = await snapshot();
       assert.deepEqual(
         state.items.find((i) => i.id === "custom-item"),
-        { ...custom, category: "general" },
+        { ...stored, category: "general" },
       );
       assert.ok(!state.catalog.categories.some((p) => p.id === category.id));
       await assert.rejects(removePreset("categories", "general"));
@@ -118,11 +120,12 @@ test("catalog migration and persistent operations preserve inventory", async (t)
     async () => {
       const item = { ...legacyItem, id: "at-place", location: place.name };
       await mutate([item]);
+      const stored = (await snapshot()).items.find((i) => i.id === item.id);
       await removePreset("locations", place.id);
       const state = await snapshot();
       assert.deepEqual(
         state.items.find((i) => i.id === item.id),
-        item,
+        stored,
       );
       assert.ok(!state.catalog.locations.some((p) => p.id === place.id));
     },
@@ -185,6 +188,7 @@ test("catalog migration and persistent operations preserve inventory", async (t)
         notes: "Newer local note",
       };
       await mutate([original]);
+      const stored = (await snapshot()).items.find((i) => i.id === original.id);
       const result = await mutate(
         [
           { ...original, notes: "Older backup note" },
@@ -197,7 +201,7 @@ test("catalog migration and persistent operations preserve inventory", async (t)
       assert.deepEqual(result, { written: 1, skipped: 1 });
       assert.deepEqual(
         (await snapshot()).items.find((i) => i.id === "conflict"),
-        original,
+        stored,
       );
       await mutate(
         [{ ...original, notes: "Explicit replacement" }],

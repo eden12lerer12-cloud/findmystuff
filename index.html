@@ -87,7 +87,14 @@
               <span id="total" class="count">0</span>
             </h2>
           </div>
-          <button class="primary" id="add-item" data-i18n="add">
+          <button
+            type="button"
+            class="secondary"
+            id="open-home"
+            data-i18n="myHome"
+          >
+            הבית שלי</button
+          ><button class="primary" id="add-item" data-i18n="add">
             ＋ הוספת חפץ
           </button>
         </div>
@@ -271,7 +278,6 @@
                 id="item-room"
                 name="room"
                 list="room-options"
-                required
                 maxlength="80"
                 placeholder="למשל, כניסה לבית"
                 data-i18n-placeholder="roomPlaceholder"
@@ -302,13 +308,17 @@
             </button>
           </div>
           <label
+            ><span data-i18n="chooseLocation">מיקום שמור</span
+            ><select id="item-location-id"></select
+          ></label>
+          <label
             ><span data-i18n="location">איפה בדיוק?</span>
             <input
               name="location"
               id="item-location"
               list="location-options"
               required
-              maxlength="180"
+              maxlength="2000"
               placeholder="למשל, במגירה העליונה, בקופסה הכחולה"
               data-i18n-placeholder="locationPlaceholder" /></label
           ><datalist id="location-options"></datalist>
@@ -352,6 +362,87 @@
           </button>
         </div>
       </form>
+    </dialog>
+    <dialog id="home-dialog" aria-labelledby="home-title">
+      <div class="dialog-heading">
+        <h2 id="home-title" data-i18n="myHome">הבית שלי</h2>
+        <button
+          type="button"
+          id="home-close"
+          class="icon-button"
+          data-i18n-aria-label="close"
+          aria-label="סגירה"
+        >
+          ×
+        </button>
+      </div>
+      <div class="home-body">
+        <button
+          type="button"
+          class="secondary"
+          id="home-add-room"
+          data-i18n="addRoom"
+        >
+          הוספת חדר חדש
+        </button>
+        <div id="home-tree"></div>
+        <h3 data-i18n="newStorage">הוספת מקום אחסון</h3>
+        <form id="location-form" class="location-form">
+          <label
+            ><span data-i18n="storageName">שם המקום</span
+            ><input id="location-name" required maxlength="180" /></label
+          ><label
+            ><span data-i18n="parentLocation">בתוך</span
+            ><select id="location-parent"></select></label
+          ><label
+            ><span data-i18n="storageKind">סוג מקום</span
+            ><select id="location-kind">
+              <option value="furniture" data-i18n="kindFurniture">רהיט</option>
+              <option value="shelf" data-i18n="kindShelf">מדף</option>
+              <option value="drawer" data-i18n="kindDrawer">מגירה</option>
+              <option value="box" data-i18n="kindBox">קופסה</option>
+              <option value="other" data-i18n="kindOther">אחר</option>
+            </select></label
+          ><button
+            type="submit"
+            class="primary"
+            id="location-save"
+            data-i18n="addPreset"
+          >
+            הוספה
+          </button>
+        </form>
+        <p id="home-error" class="form-error" role="alert"></p>
+      </div>
+    </dialog>
+    <dialog id="rename-dialog" aria-labelledby="rename-title">
+      <div class="backup-body">
+        <h2 id="rename-title" data-i18n="rename">שינוי שם</h2>
+        <form id="rename-form">
+          <label
+            ><span data-i18n="storageName">שם המקום</span
+            ><input id="rename-name" required maxlength="180"
+          /></label>
+          <p id="rename-error" class="form-error" role="alert"></p>
+          <div class="dialog-footer">
+            <button
+              type="submit"
+              id="rename-save"
+              class="primary"
+              data-i18n="saveChanges"
+            >
+              שמירה</button
+            ><button
+              type="button"
+              id="rename-cancel"
+              class="secondary"
+              data-i18n="cancel"
+            >
+              ביטול
+            </button>
+          </div>
+        </form>
+      </div>
     </dialog>
     <dialog id="backup-progress" aria-labelledby="backup-progress-title">
       <div class="backup-body">

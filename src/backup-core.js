@@ -13,13 +13,13 @@ export function createBackup(state, limits = BACKUP_LIMITS) {
     throw new BackupError("backupTooMany");
   const data = validateBackupObject({
     app: "where-did-i-put-it",
-    version: 2,
+    version: 3,
     ...state,
   });
   const prefix =
     JSON.stringify({
       app: "where-did-i-put-it",
-      version: 2,
+      version: 3,
       exportedAt: new Date().toISOString(),
       catalog: data.catalog,
     }).slice(0, -1) + ',"items":[';

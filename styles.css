@@ -1341,3 +1341,116 @@ textarea::placeholder {
   width: 100%;
   accent-color: var(--purple);
 }
+#home-dialog {
+  width: min(760px, calc(100% - 28px));
+}
+.home-body {
+  padding: 20px 25px;
+}
+.home-room,
+.home-branch {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+  margin-block: 10px;
+}
+.home-room > summary,
+.home-branch > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.home-branch {
+  margin-inline-start: 16px;
+  background: var(--paper);
+}
+.home-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.location-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.location-form label,
+#rename-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 13px;
+}
+.location-form input,
+.location-form select,
+#rename-name {
+  padding: 11px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--white);
+  color: var(--ink);
+  font: inherit;
+  min-width: 0;
+  width: 100%;
+}
+.history {
+  margin-top: 20px;
+  border-top: 1px solid var(--line);
+  padding-top: 15px;
+}
+.history summary {
+  cursor: pointer;
+  font-size: 13px;
+}
+.history li {
+  font-size: 12px;
+  line-height: 1.7;
+  margin-block: 14px;
+}
+.form-content input[readonly] {
+  background: var(--lavender);
+}
+@media (max-width: 600px) {
+  .home-body {
+    padding: 16px;
+  }
+  .location-form {
+    grid-template-columns: 1fr;
+  }
+  .section-heading {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .section-heading > .secondary {
+    padding: 10px;
+    font-size: 12px;
+  }
+  .home-branch {
+    margin-inline-start: 8px;
+  }
+}
+.advanced-fields {
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.advanced-fields > summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--purple);
+  margin-bottom: 15px;
+}
+.advanced-fields > label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.advanced-fields .photo-picker {
+  margin-bottom: 12px;
+}
+.advanced-fields > label > textarea {
+  margin-top: 8px;
+}

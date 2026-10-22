@@ -8,6 +8,8 @@ import { snapshot, mutate } from "./store.js";
 import { applyTranslations, translate } from "./i18n.js";
 import { createCatalogManager } from "./catalog-ui.js";
 import { setupBackups } from "./backup-ui.js";
+import { setupHome } from "./home-ui.js";
+import { itemPlace, resolveLocation, isInLocation } from "./locations.js";
 const $ = (id) => document.getElementById(id);
 let language = "he";
 try {
@@ -16,6 +18,27 @@ try {
   /* Language storage is optional. */
 }
 const t = (key, params) => translate(language, key, params);
+function setupEditorLayout() {
+  const content = document.querySelector("#item-form .form-content");
+  content.prepend(
+    $("item-name").closest("label"),
+    $("item-location-id").closest("label"),
+    $("item-location").closest("label"),
+  );
+  const advanced = document.createElement("details");
+  advanced.id = "advanced-fields";
+  advanced.className = "advanced-fields";
+  const summary = document.createElement("summary");
+  summary.dataset.i18n = "additionalDetails";
+  advanced.append(
+    summary,
+    $("photo-picker"),
+    $("remove-photo"),
+    $("item-notes").closest("label"),
+  );
+  content.append(advanced, $("form-error"));
+}
+setupEditorLayout();
 function applyLanguage() {
   applyTranslations(document, language);
   $("language-switch").textContent = language === "he" ? "English" : "עברית";
@@ -38,6 +61,7 @@ let items = [],
 let previousCategory = "general",
   legacyCategoryLabel = null,
   viewingId = null;
+let selectedLocationId = "";
 const channel =
   typeof BroadcastChannel !== "undefined"
     ? new BroadcastChannel("where-did-i-put-it")
@@ -92,6 +116,27 @@ function renderCatalogOptions() {
     }),
   );
   previousCategory = $("item-category").value;
+  const previousPlace = $("item-location-id").value;
+  const manual = node("option", "", t("manualLocation"));
+  manual.value = "";
+  $("item-location-id").replaceChildren(
+    manual,
+    ...catalog.locations.map((preset) => {
+      const path = resolveLocation(catalog, preset.id);
+      const option = node(
+        "option",
+        "",
+        [path.room, path.location].filter(Boolean).join(" › "),
+      );
+      option.value = preset.id;
+      return option;
+    }),
+  );
+  $("item-location-id").value = catalog.locations.some(
+    (place) => place.id === previousPlace,
+  )
+    ? previousPlace
+    : "";
 }
 const catalogManager = createCatalogManager({
   getState: () => ({ items, catalog }),
@@ -108,10 +153,42 @@ const catalogManager = createCatalogManager({
       $("item-category").value = preset.id;
       previousCategory = preset.id;
       legacyCategoryLabel = null;
-    } else
-      $(type === "rooms" ? "item-room" : "item-location").value = preset.name;
+    } else if (type === "rooms") $("item-room").value = preset.name;
+    else {
+      $("item-location-id").value = preset.id;
+      selectLocation();
+    }
   },
 });
+const homeUI = setupHome({
+  getState: () => ({ items, catalog }),
+  t,
+  onChange: async () => {
+    await refresh();
+    channel?.postMessage("changed");
+  },
+  onFilter: (filter) => {
+    resetFilters();
+    room = filter.room ?? "";
+    selectedLocationId = filter.locationId ?? "";
+    render();
+  },
+  addRoom: () => catalogManager.open("rooms"),
+});
+function selectLocation() {
+  const id = $("item-location-id").value;
+  $("item-room").readOnly = false;
+  $("item-location").readOnly = !!id;
+  if (id) {
+    const place = resolveLocation(catalog, id);
+    $("item-location").value = place.location;
+    if (place.room) {
+      $("item-room").value = place.room;
+      $("item-room").readOnly = true;
+    }
+  }
+}
+$("item-location-id").onchange = selectLocation;
 $("item-category").addEventListener("change", () => {
   if ($("item-category").value === "__add__") {
     $("item-category").value = previousCategory;
@@ -141,13 +218,20 @@ async function saveChanges(changes, removedId, importedCatalog) {
 }
 function resetFilters() {
   room = "";
+  selectedLocationId = "";
   $("search").value = "";
   $("category").value = "";
   render();
 }
 function render() {
+  if (
+    selectedLocationId &&
+    !catalog.locations.some((node) => node.id === selectedLocationId)
+  )
+    selectedLocationId = "";
   renderCatalogOptions();
   catalogManager.render();
+  homeUI.render();
   const rooms = [
     ...new Set([
       ...items.map((i) => i.room),
@@ -162,6 +246,7 @@ function render() {
     button.setAttribute("aria-pressed", String(room === value));
     button.onclick = () => {
       room = value;
+      selectedLocationId = "";
       render();
     };
     $("rooms").append(button);
@@ -181,11 +266,15 @@ function render() {
     room,
     $("category").value,
     $("sort").value,
+    catalog,
+  ).filter(
+    (item) =>
+      !selectedLocationId || isInLocation(item, selectedLocationId, catalog),
   );
   $("empty").hidden = items.length !== 0;
   $("no-results").hidden = !items.length || filtered.length !== 0;
   $("results-label").textContent = items.length
-    ? `${t(filtered.length === 1 ? "itemCountOne" : "itemCount", { count: filtered.length })}${room ? ` · ${room}` : ""}`
+    ? `${t(filtered.length === 1 ? "itemCountOne" : "itemCount", { count: filtered.length })}${room ? ` · ${room}` : ""}${selectedLocationId ? " · " + resolveLocation(catalog, selectedLocationId).location : ""}`
     : "";
   $("items").replaceChildren(...filtered.map(itemCard));
   if ($("item-details").open) {
@@ -195,6 +284,7 @@ function render() {
   }
 }
 function itemCard(item) {
+  const place = itemPlace(item, catalog);
   const article = node("article", "item-card");
   const open = node("button", "item-open");
   open.type = "button";
@@ -229,8 +319,8 @@ function itemCard(item) {
   icon.setAttribute("aria-hidden", "true");
   const address = node("div");
   address.append(
-    node("strong", "", item.room),
-    node("span", "", item.location),
+    node("strong", "", place.room || t("roomNotSpecified")),
+    node("span", "", place.location),
   );
   location.append(icon, address);
   body.append(location);
@@ -239,15 +329,15 @@ function itemCard(item) {
     "time",
     "updated",
     t("recordedAt", {
-      date: new Date(item.updatedAt).toLocaleDateString(
-        language === "he" ? "he-IL" : "en-US",
-      ),
+      date: new Date(
+        item.locationRecordedAt ?? item.updatedAt,
+      ).toLocaleDateString(language === "he" ? "he-IL" : "en-US"),
     }),
   );
-  recorded.dateTime = item.updatedAt;
-  recorded.title = new Date(item.updatedAt).toLocaleString(
-    language === "he" ? "he-IL" : "en-US",
-  );
+  recorded.dateTime = item.locationRecordedAt ?? item.updatedAt;
+  recorded.title = new Date(
+    item.locationRecordedAt ?? item.updatedAt,
+  ).toLocaleString(language === "he" ? "he-IL" : "en-US");
   const footer = node("div", "card-footer");
   footer.append(recorded);
   const edit = node("button", "", t("edit"));
@@ -270,6 +360,7 @@ function itemCard(item) {
   return article;
 }
 function renderDetails(item) {
+  const place = itemPlace(item, catalog);
   $("item-details-title").textContent = item.name;
   const content = $("details-content");
   content.replaceChildren();
@@ -290,8 +381,8 @@ function renderDetails(item) {
   content.append(node("p", "last-recorded", t("lastRecorded")));
   const list = node("dl", "details-list");
   for (const [key, value] of [
-    ["room", item.room],
-    ["location", item.location],
+    ["room", place.room || t("roomNotSpecified")],
+    ["location", place.location],
     ["category", item.categoryLabel || categoryName(item.category)],
     ["notes", item.notes],
   ]) {
@@ -307,13 +398,44 @@ function renderDetails(item) {
       "p",
       "field-help",
       t("recordedAt", {
-        date: new Date(item.updatedAt).toLocaleString(
-          language === "he" ? "he-IL" : "en-US",
-        ),
+        date: new Date(
+          item.locationRecordedAt ?? item.updatedAt,
+        ).toLocaleString(language === "he" ? "he-IL" : "en-US"),
       }),
     ),
     node("p", "field-help", t("accuracy")),
   );
+  const history = node("details", "history");
+  history.append(node("summary", "", t("locationHistory")));
+  const listHistory = node("ol");
+  for (const entry of [
+    ...(item.history ?? [
+      {
+        room: item.room,
+        location: item.location,
+        recordedAt: item.locationRecordedAt ?? item.updatedAt,
+      },
+    ]),
+  ].reverse()) {
+    const row = node("li");
+    row.append(
+      node(
+        "strong",
+        "",
+        [entry.room, entry.location].filter(Boolean).join(" › "),
+      ),
+      node(
+        "p",
+        "field-help",
+        new Date(entry.recordedAt).toLocaleString(
+          language === "he" ? "he-IL" : "en-US",
+        ),
+      ),
+    );
+    listHistory.append(row);
+  }
+  history.append(listHistory);
+  content.append(history);
 }
 function openDetails(item) {
   viewingId = item.id;
@@ -347,6 +469,7 @@ function openEditor(item) {
   $("form-error").textContent = "";
   editingId = item?.id ?? null;
   image = item?.image ?? "";
+  $("advanced-fields").open = !!(item?.image || item?.notes);
   imageBusy = false;
   $("save-item").disabled = false;
   $("photo").disabled = false;
@@ -356,6 +479,8 @@ function openEditor(item) {
       $(`item-${name}`).value = item[name];
   previousCategory = $("item-category").value;
   legacyCategoryLabel = item?.categoryLabel ?? null;
+  $("item-location-id").value = item?.locationId ?? "";
+  selectLocation();
   updatePhoto();
   $("editor").showModal();
   $("item-name").focus();
@@ -379,6 +504,9 @@ $("item-form").onsubmit = async (event) => {
         name: $("item-name").value,
         room: $("item-room").value,
         location: $("item-location").value,
+        ...($("item-location-id").value
+          ? { locationId: $("item-location-id").value }
+          : {}),
         category: $("item-category").value,
         ...(legacyCategoryLabel && $("item-category").value === "general"
           ? { categoryLabel: legacyCategoryLabel }
@@ -553,7 +681,9 @@ document.addEventListener("keydown", (event) => {
     !$("backup-dialog").open &&
     !$("catalog-dialog").open &&
     !$("item-details").open &&
-    !$("backup-progress").open
+    !$("backup-progress").open &&
+    !$("home-dialog").open &&
+    !$("rename-dialog").open
   ) {
     event.preventDefault();
     $("search").focus();
