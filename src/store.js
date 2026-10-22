@@ -9,6 +9,7 @@ let database;
 export async function openStore() {
   if (!database)
     database = new Promise((resolve, reject) => {
+      let abandoned = false;
       const request = indexedDB.open("where-did-i-put-it", 2);
       request.onupgradeneeded = () => {
         const db = request.result;
@@ -21,6 +22,10 @@ export async function openStore() {
       };
       request.onsuccess = () => {
         const db = request.result;
+        if (abandoned) {
+          db.close();
+          return;
+        }
         db.onversionchange = () => {
           db.close();
           database = undefined;
@@ -32,6 +37,7 @@ export async function openStore() {
         reject(request.error);
       };
       request.onblocked = () => {
+        abandoned = true;
         database = undefined;
         reject(
           new Error(
@@ -65,6 +71,16 @@ export async function snapshot() {
 export async function allItems() {
   return (await snapshot()).items;
 }
+export async function itemKeys() {
+  const db = await openStore();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("items", "readonly");
+    const request = tx.objectStore("items").getAllKeys();
+    tx.oncomplete = () => resolve(request.result);
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error ?? new Error("Read aborted"));
+  });
+}
 // Catalog and item updates share a transaction, so deletion cannot orphan items.
 async function update(operation) {
   const db = await openStore();
@@ -93,7 +109,12 @@ async function update(operation) {
       reject(failure ?? tx.error ?? new Error("Transaction aborted"));
   });
 }
-export async function mutate(changes = [], deletedId, importedCatalog) {
+export async function mutate(
+  changes = [],
+  deletedId,
+  importedCatalog,
+  options = {},
+) {
   return update(({ items, settings, catalog }) => {
     if (importedCatalog) {
       const incoming = validateCatalog(importedCatalog);
@@ -107,8 +128,24 @@ export async function mutate(changes = [], deletedId, importedCatalog) {
     }
     const validated = changes.map((item) => validateItem(item, catalog));
     if (deletedId) items.delete(deletedId);
-    for (const item of validated) items.put(item);
+    const result = { written: 0, skipped: 0 };
+    for (const item of validated) {
+      if (options.skipExisting) {
+        const request = items.getKey(item.id);
+        request.onsuccess = () => {
+          if (request.result !== undefined) result.skipped++;
+          else {
+            items.put(item);
+            result.written++;
+          }
+        };
+      } else {
+        items.put(item);
+        result.written++;
+      }
+    }
     if (importedCatalog) settings.put({ id: "catalog", ...catalog });
+    return result;
   });
 }
 export async function addPreset(type, name) {

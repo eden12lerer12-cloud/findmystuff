@@ -39,3 +39,7 @@ Image decoding happens before the pixel-count check; input-byte and output-dimen
 ## First incremental milestone
 
 Add a small translation module, Hebrew/English UI switching and accurate recorded-location wording. Preserve the database name, version, record IDs and backup format. Test translation completeness, both direction modes, existing-data persistence and English item creation. Add community documentation separately from runtime logic. See [ROADMAP.md](ROADMAP.md) for the next milestone.
+
+## Stability follow-up (2026-10-22)
+
+The export/import asymmetry is fixed using shared bounds and validation before download. Record capacity increased from 2,000 to 20,000; file capacity remains 50 MiB. Background processing, preview cancellation, safe default conflict handling and transactional existence checks are implemented. Oversized exports are refused, not split or truncated. Clean `npm ci`, 28 tests, production build and the real browser worker export/import/cancel flow passed. Three fictional pre-existing demonstration records were preserved. Large file boundary regression tests use reduced limits for deterministic UTF-8 boundaries; no claim of exhaustive mobile memory stress testing is made.

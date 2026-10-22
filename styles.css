@@ -1325,3 +1325,19 @@ textarea::placeholder {
     font-size: 11px;
   }
 }
+.import-replace {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.7;
+  margin-top: 18px;
+}
+.import-replace input {
+  margin-top: 5px;
+  accent-color: var(--purple);
+}
+#backup-progress progress {
+  width: 100%;
+  accent-color: var(--purple);
+}

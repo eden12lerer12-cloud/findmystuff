@@ -10,7 +10,7 @@
     />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"
     />
     <title>FindMyStuff — איפה שמתי?</title>
     <link rel="icon" href="./icon.svg" type="image/svg+xml" />
@@ -353,6 +353,28 @@
         </div>
       </form>
     </dialog>
+    <dialog id="backup-progress" aria-labelledby="backup-progress-title">
+      <div class="backup-body">
+        <h2 id="backup-progress-title" data-i18n="backupWorking">
+          עיבוד גיבוי מקומי
+        </h2>
+        <p id="backup-progress-message" aria-live="polite"></p>
+        <progress
+          data-i18n-aria-label="backupWorking"
+          aria-label="עיבוד גיבוי מקומי"
+        ></progress>
+        <div class="dialog-footer">
+          <button
+            type="button"
+            id="backup-progress-cancel"
+            class="secondary"
+            data-i18n="cancel"
+          >
+            ביטול
+          </button>
+        </div>
+      </div>
+    </dialog>
     <dialog id="backup-dialog" aria-labelledby="backup-title">
       <div class="backup-body">
         <h2 id="backup-title" data-i18n="importTitle">הוספת חפצים מגיבוי</h2>
@@ -360,6 +382,12 @@
         <p data-i18n="importExplain">
           חפצים בעלי אותו מזהה יעודכנו לפי הגיבוי. שאר החפצים שלך יישארו.
         </p>
+        <label class="import-replace"
+          ><input type="checkbox" id="replace-import" /><span
+            data-i18n="backupReplace"
+            >החלף חפצים בעלי אותו מזהה בפרטים מהגיבוי</span
+          ></label
+        >
         <div class="dialog-footer">
           <button class="primary" id="confirm-import" data-i18n="importConfirm">
             ייבוא החפצים</button

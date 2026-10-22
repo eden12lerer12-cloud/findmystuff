@@ -1,3 +1,4 @@
+import { BACKUP_LIMITS } from "./limits.js";
 export const categories = {
   general: ["📦", "כללי"],
   documents: ["📄", "מסמכים"],
@@ -142,13 +143,15 @@ export function validateItem(item, catalog = defaultCatalog()) {
   return result;
 }
 export function parseBackupBundle(text) {
-  const backup = JSON.parse(text);
+  return validateBackupObject(JSON.parse(text));
+}
+export function validateBackupObject(backup) {
   if (
     !backup ||
     backup.app !== "where-did-i-put-it" ||
     ![1, 2].includes(backup.version) ||
     !Array.isArray(backup.items) ||
-    backup.items.length > 2000
+    backup.items.length > BACKUP_LIMITS.maxItems
   )
     throw new Error("Invalid backup");
   const catalog =

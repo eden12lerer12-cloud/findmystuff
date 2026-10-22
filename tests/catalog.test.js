@@ -176,6 +176,41 @@ test("catalog migration and persistent operations preserve inventory", async (t)
       );
     },
   );
+  await t.test(
+    "import keeps existing records by default at transaction time and replaces only when requested",
+    async () => {
+      const original = {
+        ...legacyItem,
+        id: "conflict",
+        notes: "Newer local note",
+      };
+      await mutate([original]);
+      const result = await mutate(
+        [
+          { ...original, notes: "Older backup note" },
+          { ...legacyItem, id: "added-by-import" },
+        ],
+        undefined,
+        defaultCatalog(),
+        { skipExisting: true },
+      );
+      assert.deepEqual(result, { written: 1, skipped: 1 });
+      assert.deepEqual(
+        (await snapshot()).items.find((i) => i.id === "conflict"),
+        original,
+      );
+      await mutate(
+        [{ ...original, notes: "Explicit replacement" }],
+        undefined,
+        defaultCatalog(),
+        { skipExisting: false },
+      );
+      assert.equal(
+        (await snapshot()).items.find((i) => i.id === "conflict").notes,
+        "Explicit replacement",
+      );
+    },
+  );
 });
 test("backups reject malformed custom categories and missing fallback category", () => {
   const catalog = defaultCatalog();

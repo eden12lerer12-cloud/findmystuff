@@ -3,11 +3,11 @@ import {
   defaultCatalog,
   filterItems,
   validateItem,
-  parseBackupBundle,
 } from "./model.js";
 import { snapshot, mutate } from "./store.js";
 import { applyTranslations, translate } from "./i18n.js";
 import { createCatalogManager } from "./catalog-ui.js";
+import { setupBackups } from "./backup-ui.js";
 const $ = (id) => document.getElementById(id);
 let language = "he";
 try {
@@ -31,8 +31,6 @@ let items = [],
   room = "",
   editingId = null,
   image = "",
-  pendingImport = [],
-  pendingCatalog = null,
   deletedItem = null,
   imageBusy = false,
   ready = false,
@@ -527,82 +525,15 @@ $("demo").onclick = async () => {
     fail(error);
   }
 };
-$("export").onclick = async () => {
-  try {
-    const fresh = await snapshot();
-    const data = JSON.stringify(
-      {
-        app: "where-did-i-put-it",
-        version: 2,
-        exportedAt: new Date().toISOString(),
-        items: fresh.items,
-        catalog: fresh.catalog,
-      },
-      null,
-      2,
-    );
-    const url = URL.createObjectURL(
-      new Blob([data], { type: "application/json" }),
-    );
-    const link = node("a");
-    link.href = url;
-    link.download = `where-did-i-put-it-${new Date().toISOString().slice(0, 10)}.json`;
-    link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 10000);
-    toast(t("backupSaved"));
-  } catch (error) {
-    fail(error);
-  }
-};
-$("import").onclick = () => {
-  if (ready) $("import-file").click();
-};
-$("import-file").onchange = async () => {
-  const file = $("import-file").files[0];
-  if (!file) return;
-  try {
-    if (file.size > 50 * 1024 * 1024) throw new Error("Too large");
-    const parsed = parseBackupBundle(await file.text());
-    pendingImport = parsed.items;
-    pendingCatalog = parsed.catalog;
-    const currentIds = new Set(items.map((i) => i.id));
-    const overlaps = pendingImport.filter((i) => currentIds.has(i.id)).length;
-    $("backup-summary").textContent =
-      t("importSummary", {
-        count: pendingImport.length,
-        overlaps,
-      }) +
-      " " +
-      t("importCatalogNotice");
-    $("backup-dialog").showModal();
-  } catch {
-    pendingImport = [];
-    pendingCatalog = null;
-    toast(t("backupError"));
-  } finally {
-    $("import-file").value = "";
-  }
-};
-$("cancel-import").onclick = () => {
-  pendingImport = [];
-  pendingCatalog = null;
-  $("backup-dialog").close();
-};
-$("confirm-import").onclick = async () => {
-  $("confirm-import").disabled = true;
-  try {
-    await saveChanges(pendingImport, undefined, pendingCatalog);
-    pendingImport = [];
-    pendingCatalog = null;
+setupBackups({
+  t,
+  toast,
+  onChanged: async () => {
+    await refresh();
     resetFilters();
-    $("backup-dialog").close();
-    toast(t("imported"));
-  } catch (error) {
-    fail(error);
-  } finally {
-    $("confirm-import").disabled = false;
-  }
-};
+    channel?.postMessage("changed");
+  },
+});
 $("language-switch").onclick = () => {
   language = language === "he" ? "en" : "he";
   try {
@@ -621,7 +552,8 @@ document.addEventListener("keydown", (event) => {
     !$("editor").open &&
     !$("backup-dialog").open &&
     !$("catalog-dialog").open &&
-    !$("item-details").open
+    !$("item-details").open &&
+    !$("backup-progress").open
   ) {
     event.preventDefault();
     $("search").focus();

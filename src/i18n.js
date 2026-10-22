@@ -68,7 +68,27 @@ export const messages = {
     importSummary:
       "הגיבוי מכיל {count} חפצים. {overlaps} חפצים קיימים יעודכנו.",
     importExplain:
-      "חפצים בעלי אותו מזהה יעודכנו לפי הגיבוי. שאר החפצים שלך יישארו.",
+      "כברירת מחדל חפצים קיימים נשמרים כפי שהם. אפשר לבחור במפורש להחליף אותם לפי הגיבוי. אף חפץ אחר לא יימחק.",
+    backupWorking: "עיבוד גיבוי מקומי",
+    backupPreparing: "בודקים את הנתונים ואת גודל הגיבוי לפני יצירת הקובץ…",
+    backupValidating:
+      "בודקים את קובץ הגיבוי. הנתונים במכשיר לא משתנים בשלב הזה…",
+    backupRestoring: "שומרים את הנתונים בעסקה אחת. נא להמתין…",
+    backupPreview:
+      "בגיבוי {total} חפצים: {newItems} חדשים ו־{existing} עם מזהה שכבר קיים במכשיר.",
+    backupReplace: "החלף חפצים בעלי אותו מזהה בפרטים מהגיבוי",
+    backupImported:
+      "הייבוא הסתיים: {written} חפצים נשמרו, {skipped} קיימים נשארו ללא שינוי.",
+    backupTooLarge:
+      "הגיבוי חורג ממגבלת 50 MiB. הפעולה נעצרה; לא נוצר קובץ ולא שונו הנתונים.",
+    backupTooMany:
+      "הגיבוי חורג ממגבלת 20,000 החפצים. לא נוצר קובץ ולא שונו הנתונים.",
+    backupInvalid:
+      "לא ניתן להשלים את הגיבוי. הקובץ או הנתונים לא תקינים, או שהדפדפן לא הצליח לעבד אותם. לא בוצע שחזור חלקי.",
+    backupUnsupported:
+      "הדפדפן לא מאפשר עיבוד גיבוי ברקע. נסה דפדפן עדכני או פתח את האפליקציה דרך כתובת האתר.",
+    storageQuota:
+      "אין מספיק מקום פנוי לשמירה. השחזור בוטל והנתונים הקודמים נשמרו.",
     importConfirm: "ייבוא החפצים",
     undo: "ביטול המחיקה",
     edit: "עריכה",
@@ -205,7 +225,27 @@ export const messages = {
     importSummary:
       "This backup contains {count} items. {overlaps} existing items will be updated.",
     importExplain:
-      "Items with the same ID will be updated from the backup. Other items will stay unchanged.",
+      "Existing items are kept by default. Explicitly choose replacement to use backup records with the same ID. Other items are never deleted.",
+    backupWorking: "Processing a local backup",
+    backupPreparing: "Checking records and backup size before creating a file…",
+    backupValidating:
+      "Validating this backup. Your stored data is not being changed…",
+    backupRestoring: "Saving the records in one transaction. Please wait…",
+    backupPreview:
+      "This backup contains {total} items: {newItems} new and {existing} with IDs already on this device.",
+    backupReplace: "Replace items with matching IDs using the backup records",
+    backupImported:
+      "Import finished: {written} items saved, {skipped} existing items left unchanged.",
+    backupTooLarge:
+      "This backup exceeds the 50 MiB limit. The operation stopped; no file was created and no data was changed.",
+    backupTooMany:
+      "This backup exceeds the 20,000 item limit. No file was created and no data was changed.",
+    backupInvalid:
+      "Could not complete the backup operation. The file or records are invalid, or the browser could not process them. No partial restore was made.",
+    backupUnsupported:
+      "This browser cannot process backups in the background. Try an up-to-date browser or open the app from its website address.",
+    storageQuota:
+      "There is not enough storage to save this backup. The restore was rolled back and previous records were preserved.",
     importConfirm: "Import items",
     undo: "Undo deletion",
     edit: "Edit",
