@@ -39,6 +39,26 @@ test("catalog migration and persistent operations preserve inventory", async (t)
   );
   let category, place;
   await t.test(
+    "saved rooms work without items, survive backup and preserve existing item room text on removal",
+    async () => {
+      const room = await addPreset("rooms", "Guest room");
+      let state = await snapshot();
+      assert.ok(state.catalog.rooms.some((p) => p.id === room.id));
+      const restored = parseBackupBundle(
+        JSON.stringify({ app: "where-did-i-put-it", version: 2, ...state }),
+      );
+      assert.deepEqual(restored.catalog.rooms, state.catalog.rooms);
+      await mutate([{ ...legacyItem, id: "guest-item", room: room.name }]);
+      await removePreset("rooms", room.id);
+      state = await snapshot();
+      assert.equal(
+        state.items.find((i) => i.id === "guest-item").room,
+        "Guest room",
+      );
+      assert.ok(!state.catalog.rooms.some((p) => p.id === room.id));
+    },
+  );
+  await t.test(
     "custom category and location survive storage reads; duplicates fail",
     async () => {
       category = await addPreset("categories", "Travel");
@@ -180,4 +200,18 @@ test("backups reject malformed custom categories and missing fallback category",
       }),
     ),
   );
+});
+test("older version 2 catalogs without rooms import without changing their items", () => {
+  const catalog = defaultCatalog();
+  delete catalog.rooms;
+  const parsed = parseBackupBundle(
+    JSON.stringify({
+      app: "where-did-i-put-it",
+      version: 2,
+      catalog,
+      items: [legacyItem],
+    }),
+  );
+  assert.deepEqual(parsed.catalog.rooms, []);
+  assert.deepEqual(parsed.items, [legacyItem]);
 });

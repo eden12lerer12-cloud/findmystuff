@@ -20,7 +20,8 @@ Open http://127.0.0.1:4173. There are no runtime dependencies to install, no acc
 - Search names, locations and notes, including Hebrew text with vowel marks.
 - Filter by room or category; sort by name or most recent update.
 - Add or remove reusable categories and storage places from the dashboard or item editor.
-- Use a one-time category or typed location without adding it to the reusable lists.
+- Add new categories directly from the category picker and save rooms for future items.
+- Open an item card or photo to view its details, then choose Edit when needed.
 - Category removal moves affected items to General; removing a place never changes previously recorded locations. General stays as a protected fallback.
 - Choose a photo from your device, or use the camera option offered by your mobile browser.
 - Resize images locally before saving. Supported formats: JPEG, PNG and WebP, up to 12 MB input.
@@ -63,7 +64,7 @@ The included CI workflow checks each push and pull request. The Pages workflow d
 
 ## First release scope
 
-Version 0.2.0 is a working local-first prototype. Independent rooms, nested storage locations, fuzzy/conversational search, recognition, voice, history, erase-all, encrypted sync and installable offline support are not implemented yet. See the prioritized [roadmap](docs/ROADMAP.md) and [project vision](docs/VISION.md).
+Version 0.3.0 is a working local-first prototype. Nested storage locations, fuzzy/conversational search, recognition, voice, history, erase-all, encrypted sync and installable offline support are not implemented yet. See the prioritized [roadmap](docs/ROADMAP.md) and [project vision](docs/VISION.md).
 
 ## Optional AI services
 
@@ -76,3 +77,5 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) and the [code of conduct](CODE_OF_CONDUCT
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+Legacy item-only category labels from older backups are preserved, but creating new one-time categories is no longer offered in the interface.

@@ -97,7 +97,7 @@ export async function mutate(changes = [], deletedId, importedCatalog) {
   return update(({ items, settings, catalog }) => {
     if (importedCatalog) {
       const incoming = validateCatalog(importedCatalog);
-      for (const type of ["categories", "locations"]) {
+      for (const type of ["categories", "locations", "rooms"]) {
         const ids = new Set(catalog[type].map((preset) => preset.id));
         catalog[type].push(
           ...incoming[type].filter((preset) => !ids.has(preset.id)),
@@ -112,7 +112,7 @@ export async function mutate(changes = [], deletedId, importedCatalog) {
   });
 }
 export async function addPreset(type, name) {
-  if (!["categories", "locations"].includes(type))
+  if (!["categories", "locations", "rooms"].includes(type))
     throw new Error("Invalid preset type");
   const preset = validatePreset(
     { id: `custom-${crypto.randomUUID()}`, name },
@@ -133,7 +133,7 @@ export async function addPreset(type, name) {
 }
 export async function removePreset(type, id) {
   if (
-    !["categories", "locations"].includes(type) ||
+    !["categories", "locations", "rooms"].includes(type) ||
     (type === "categories" && id === "general")
   )
     throw new Error("Protected preset");

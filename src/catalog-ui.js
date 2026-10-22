@@ -10,21 +10,28 @@ export function createCatalogManager({
 }) {
   const $ = (id) => document.getElementById(id);
   let type = "categories",
-    pendingId = null;
+    pendingId = null,
+    quick = false;
+  const keys = {
+    categories: ["manageCategories", "categoryHelp", "newCategoryName"],
+    locations: ["manageLocations", "locationHelp", "newLocationName"],
+    rooms: ["manageRooms", "roomHelp", "newRoomName"],
+  };
   const dialog = $("catalog-dialog");
   function render() {
     if (!dialog.open) return;
     const { catalog, items } = getState();
     $("catalog-title").textContent = t(
-      type === "categories" ? "manageCategories" : "manageLocations",
+      quick && type === "categories"
+        ? "addCategory"
+        : quick && type === "rooms"
+          ? "addRoom"
+          : keys[type][0],
     );
-    $("catalog-help").textContent = t(
-      type === "categories" ? "categoryHelp" : "locationHelp",
-    );
-    $("preset-label").textContent = t(
-      type === "categories" ? "newCategoryName" : "newLocationName",
-    );
-    $("preset-name").maxLength = type === "categories" ? 60 : 180;
+    $("catalog-help").textContent = t(keys[type][1]);
+    $("preset-label").textContent = t(keys[type][2]);
+    $("preset-name").maxLength =
+      type === "categories" ? 60 : type === "rooms" ? 80 : 180;
     $("preset-list").replaceChildren(
       ...catalog[type].map((preset) => {
         const row = document.createElement("div");
@@ -36,7 +43,9 @@ export function createCatalogManager({
         const uses = items.filter((item) =>
           type === "categories"
             ? item.category === preset.id && !item.categoryLabel
-            : item.location === preset.name,
+            : type === "rooms"
+              ? item.room === preset.name
+              : item.location === preset.name,
         ).length;
         count.textContent = t("presetUses", { count: uses });
         row.append(name, count);
@@ -58,7 +67,9 @@ export function createCatalogManager({
             $("preset-confirm-message").textContent = t(
               type === "categories"
                 ? "confirmCategoryDelete"
-                : "confirmLocationDelete",
+                : type === "rooms"
+                  ? "confirmRoomDelete"
+                  : "confirmLocationDelete",
               { name: label(preset, type), count: uses },
             );
             $("preset-confirm").hidden = false;
@@ -74,8 +85,9 @@ export function createCatalogManager({
       $("preset-confirm").hidden = true;
     }
   }
-  function open(nextType) {
+  function open(nextType, quickAdd = false) {
     type = nextType;
+    quick = quickAdd;
     pendingId = null;
     $("preset-form").reset();
     $("catalog-error").textContent = "";
@@ -85,8 +97,9 @@ export function createCatalogManager({
     render();
     $("preset-name").focus();
   }
-  for (const id of ["manage-categories", "editor-categories"])
-    $(id).onclick = () => open("categories");
+  $("manage-categories").onclick = () => open("categories");
+  $("editor-categories").onclick = () => open("categories", true);
+  $("editor-rooms").onclick = () => open("rooms", true);
   for (const id of ["manage-locations", "editor-locations"])
     $(id).onclick = () => open("locations");
   for (const id of ["catalog-close", "catalog-done"])
@@ -111,6 +124,10 @@ export function createCatalogManager({
       const preset = await addPreset(type, name);
       await onChange();
       onCreated(type, preset);
+      if (quick) {
+        dialog.close();
+        return;
+      }
       $("preset-name").value = "";
       $("catalog-status").textContent = t("presetAdded");
       $("preset-name").focus();
@@ -139,5 +156,5 @@ export function createCatalogManager({
       $("preset-confirm-delete").disabled = false;
     }
   };
-  return { render };
+  return { render, open };
 }

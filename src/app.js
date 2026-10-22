@@ -37,6 +37,9 @@ let items = [],
   imageBusy = false,
   ready = false,
   editorSession = 0;
+let previousCategory = "general",
+  legacyCategoryLabel = null,
+  viewingId = null;
 const channel =
   typeof BroadcastChannel !== "undefined"
     ? new BroadcastChannel("where-did-i-put-it")
@@ -56,11 +59,6 @@ function categoryName(id) {
 function categoryIcon(id) {
   return Object.hasOwn(categories, id) ? categories[id][0] : "🏷️";
 }
-function updateOneTimeField() {
-  const once = $("item-category").value === "__once__";
-  $("one-time-field").hidden = !once;
-  $("one-time-category").required = once;
-}
 function renderCatalogOptions() {
   for (const id of ["category", "item-category"]) {
     const previous = $(id).value;
@@ -76,19 +74,17 @@ function renderCatalogOptions() {
     const special = node(
       "option",
       "",
-      t(id === "category" ? "allCategories" : "oneTimeCategory"),
+      t(id === "category" ? "allCategories" : "addCategory"),
     );
-    special.value = id === "category" ? "" : "__once__";
+    special.value = id === "category" ? "" : "__add__";
     $(id).replaceChildren(
       ...(id === "category" ? [special, ...options] : [...options, special]),
     );
-    $(id).value =
-      (previous === "__once__" && id === "item-category") ||
-      catalog.categories.some((p) => p.id === previous)
-        ? previous
-        : id === "category"
-          ? ""
-          : "general";
+    $(id).value = catalog.categories.some((p) => p.id === previous)
+      ? previous
+      : id === "category"
+        ? ""
+        : "general";
   }
   $("location-options").replaceChildren(
     ...catalog.locations.map((preset) => {
@@ -97,7 +93,7 @@ function renderCatalogOptions() {
       return option;
     }),
   );
-  updateOneTimeField();
+  previousCategory = $("item-category").value;
 }
 const catalogManager = createCatalogManager({
   getState: () => ({ items, catalog }),
@@ -112,11 +108,21 @@ const catalogManager = createCatalogManager({
     if (!$("editor").open) return;
     if (type === "categories") {
       $("item-category").value = preset.id;
-      updateOneTimeField();
-    } else $("item-location").value = preset.name;
+      previousCategory = preset.id;
+      legacyCategoryLabel = null;
+    } else
+      $(type === "rooms" ? "item-room" : "item-location").value = preset.name;
   },
 });
-$("item-category").addEventListener("change", updateOneTimeField);
+$("item-category").addEventListener("change", () => {
+  if ($("item-category").value === "__add__") {
+    $("item-category").value = previousCategory;
+    catalogManager.open("categories", true);
+  } else {
+    previousCategory = $("item-category").value;
+    legacyCategoryLabel = null;
+  }
+});
 function toast(text, undo = false) {
   $("toast-text").textContent = text;
   $("undo").hidden = !undo;
@@ -144,9 +150,12 @@ function resetFilters() {
 function render() {
   renderCatalogOptions();
   catalogManager.render();
-  const rooms = [...new Set(items.map((i) => i.room))].sort((a, b) =>
-    a.localeCompare(b, language),
-  );
+  const rooms = [
+    ...new Set([
+      ...items.map((i) => i.room),
+      ...catalog.rooms.map((p) => p.name),
+    ]),
+  ].sort((a, b) => a.localeCompare(b, language));
   if (room && !rooms.includes(room)) room = "";
   $("rooms").replaceChildren();
   for (const value of ["", ...rooms]) {
@@ -181,9 +190,19 @@ function render() {
     ? `${t(filtered.length === 1 ? "itemCountOne" : "itemCount", { count: filtered.length })}${room ? ` · ${room}` : ""}`
     : "";
   $("items").replaceChildren(...filtered.map(itemCard));
+  if ($("item-details").open) {
+    const current = items.find((i) => i.id === viewingId);
+    if (current) renderDetails(current);
+    else $("item-details").close();
+  }
 }
 function itemCard(item) {
   const article = node("article", "item-card");
+  const open = node("button", "item-open");
+  open.type = "button";
+  open.setAttribute("aria-label", t("viewItem", { name: item.name }));
+  open.onclick = () => openDetails(item);
+  article.append(open);
   const visual = node("div", "item-visual");
   visual.dataset.category = item.category;
   if (item.image) {
@@ -252,6 +271,67 @@ function itemCard(item) {
   article.append(visual, body);
   return article;
 }
+function renderDetails(item) {
+  $("item-details-title").textContent = item.name;
+  const content = $("details-content");
+  content.replaceChildren();
+  if (item.image) {
+    const img = node("img", "details-photo");
+    img.src = item.image;
+    img.alt = item.name;
+    content.append(img);
+  } else {
+    const symbol = node(
+      "div",
+      "details-placeholder",
+      categoryIcon(item.category),
+    );
+    symbol.setAttribute("aria-hidden", "true");
+    content.append(symbol);
+  }
+  content.append(node("p", "last-recorded", t("lastRecorded")));
+  const list = node("dl", "details-list");
+  for (const [key, value] of [
+    ["room", item.room],
+    ["location", item.location],
+    ["category", item.categoryLabel || categoryName(item.category)],
+    ["notes", item.notes],
+  ]) {
+    if (!value) continue;
+    const term = node("dt", "", t(key));
+    const description = node("dd", "", value);
+    description.dir = "auto";
+    list.append(term, description);
+  }
+  content.append(
+    list,
+    node(
+      "p",
+      "field-help",
+      t("recordedAt", {
+        date: new Date(item.updatedAt).toLocaleString(
+          language === "he" ? "he-IL" : "en-US",
+        ),
+      }),
+    ),
+    node("p", "field-help", t("accuracy")),
+  );
+}
+function openDetails(item) {
+  viewingId = item.id;
+  renderDetails(item);
+  $("item-details").showModal();
+}
+for (const id of ["details-close", "details-done"])
+  $(id).onclick = () => $("item-details").close();
+$("item-details").addEventListener("close", () => {
+  viewingId = null;
+});
+$("details-edit").onclick = () => {
+  const item = items.find((i) => i.id === viewingId);
+  $("item-details").close();
+  if (item) openEditor(item);
+};
 function updatePhoto() {
   $("photo-preview").hidden = !image;
   $("photo-preview").src = image || "";
@@ -276,11 +356,8 @@ function openEditor(item) {
   if (item)
     for (const name of ["name", "room", "location", "category", "notes"])
       $(`item-${name}`).value = item[name];
-  if (item?.categoryLabel) {
-    $("item-category").value = "__once__";
-    $("one-time-category").value = item.categoryLabel;
-  }
-  updateOneTimeField();
+  previousCategory = $("item-category").value;
+  legacyCategoryLabel = item?.categoryLabel ?? null;
   updatePhoto();
   $("editor").showModal();
   $("item-name").focus();
@@ -304,12 +381,9 @@ $("item-form").onsubmit = async (event) => {
         name: $("item-name").value,
         room: $("item-room").value,
         location: $("item-location").value,
-        category:
-          $("item-category").value === "__once__"
-            ? "general"
-            : $("item-category").value,
-        ...($("item-category").value === "__once__"
-          ? { categoryLabel: $("one-time-category").value }
+        category: $("item-category").value,
+        ...(legacyCategoryLabel && $("item-category").value === "general"
+          ? { categoryLabel: legacyCategoryLabel }
           : {}),
         notes: $("item-notes").value,
         image,
@@ -546,7 +620,8 @@ document.addEventListener("keydown", (event) => {
     !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName) &&
     !$("editor").open &&
     !$("backup-dialog").open &&
-    !$("catalog-dialog").open
+    !$("catalog-dialog").open &&
+    !$("item-details").open
   ) {
     event.preventDefault();
     $("search").focus();

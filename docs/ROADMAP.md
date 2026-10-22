@@ -13,7 +13,7 @@ Acceptance: existing records survive a language change and refresh; English and 
 
 ## Completed follow-up — reusable and one-time options
 
-Version 0.2 adds manageable category and flat storage-place lists, item-only category labels, and version 2 backup metadata with version 1 import support. Storage migration and atomic reassignment are covered by tests. This is not a nested location hierarchy; rooms still come from items.
+Version 0.2 adds manageable category and flat storage-place lists, item-only category labels, and version 2 backup metadata with version 1 import support. Storage migration and atomic reassignment are covered by tests. Version 0.3 adds independently saved rooms, quick creation from the item form and a read-only details dialog. New one-time categories were removed at the user’s request; legacy backup labels stay compatible. This is not a nested location hierarchy.
 
 ## Milestone 1 — reliable data recovery
 

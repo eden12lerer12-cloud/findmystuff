@@ -40,8 +40,12 @@ Independent rooms and nested locations will require an additive schema migration
 
 ## Reusable options and one-time values
 
-`src/catalog-ui.js` manages the category/place dialog. `settings` stores a `catalog` record with category and location arrays. Preset IDs are stable; custom names remain user text. General is the protected fallback. Removing a category reassigns its items atomically without changing their timestamps or other fields. Places are suggestions: deleting a preset does not rewrite any item location.
+`src/catalog-ui.js` manages the category/place dialog. `settings` stores a `catalog` record with category, location and saved-room arrays. Older catalogs without a rooms field default to an empty room list. Preset IDs are stable; custom names remain user text. General is the protected fallback. Removing a category reassigns its items atomically without changing their timestamps or other fields. Places are suggestions: deleting a preset does not rewrite any item location.
 
-An optional `categoryLabel` on a General item represents a one-time category. It is not added to global options. Locations remain text, and typed values do not implicitly create presets. Version 2 backups preserve empty presets and one-time labels. Imports merge lists by ID and retain current names when a matching ID already exists. All item references are validated against the merged catalog before writes.
+An optional legacy `categoryLabel` on a General item remains readable for compatibility. New one-time categories are no longer available in the UI; editing unrelated fields preserves the legacy label. Locations remain text, and typed values do not implicitly create presets. Version 2 backups preserve empty presets and one-time labels. Imports merge lists by ID and retain current names when a matching ID already exists. All item references are validated against the merged catalog before writes.
 
 Automated storage tests use the development-only `fake-indexeddb` package; the shipped application has no external runtime dependency. Run `npm ci` before tests.
+
+## Item details and quick creation
+
+The inventory card has a keyboard-accessible open button across its image and content; Edit/Delete remain separate controls. A read-only native dialog shows the recorded room, location, category, notes, photo and timestamp, with a separate Edit action. The category picker includes an Add action. Quick category/room creation selects the new option and returns to the existing draft without resetting its fields. Room presets are included in version 2 backups as an additive optional catalog field; item room strings are preserved.

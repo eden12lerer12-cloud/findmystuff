@@ -59,6 +59,7 @@ export function defaultCatalog() {
       name,
     })),
     locations: [],
+    rooms: [],
   };
 }
 export function validatePreset(preset, type) {
@@ -66,12 +67,18 @@ export function validatePreset(preset, type) {
   const id = field(preset.id, 80, true);
   if (
     !/^[a-zA-Z0-9_-]+$/.test(id) ||
-    ["__proto__", "__once__", "constructor", "prototype"].includes(id)
+    ["__proto__", "__once__", "__add__", "constructor", "prototype"].includes(
+      id,
+    )
   )
     throw new Error("Invalid preset ID");
   return {
     id,
-    name: field(preset.name, type === "categories" ? 60 : 180, true),
+    name: field(
+      preset.name,
+      type === "categories" ? 60 : type === "rooms" ? 80 : 180,
+      true,
+    ),
   };
 }
 export function validateCatalog(catalog) {
@@ -81,10 +88,13 @@ export function validateCatalog(catalog) {
   for (const [type, limit] of [
     ["categories", 500],
     ["locations", 1000],
+    ["rooms", 500],
   ]) {
-    if (!Array.isArray(catalog[type]) || catalog[type].length > limit)
+    const list =
+      type === "rooms" && catalog.rooms === undefined ? [] : catalog[type];
+    if (!Array.isArray(list) || list.length > limit)
       throw new Error("Invalid catalog list");
-    result[type] = catalog[type].map((preset) => validatePreset(preset, type));
+    result[type] = list.map((preset) => validatePreset(preset, type));
     if (
       new Set(result[type].map((preset) => preset.id)).size !==
       result[type].length

@@ -104,12 +104,16 @@ export const messages = {
     artLocation: "המגירה הקטנה, ליד הדלת",
     artCheck: "✓ מקום אחד פחות לחפש",
     manageCategories: "ניהול קטגוריות",
+    addCategory: "＋ הוספת קטגוריה חדשה",
+    addRoom: "＋ הוספת חדר חדש",
+    manageRooms: "ניהול חדרים",
+    newRoomName: "שם החדר החדש",
+    roomHelp: "הוסף חדר לרשימה כדי שתוכל לבחור אותו גם בחפצים הבאים.",
+    confirmRoomDelete:
+      "להסיר את ״{name}״ מרשימת החדרים השמורים? החדר שתועד בחפצים יישמר ללא שינוי.",
+    viewItem: "פתיחת פרטי {name}",
     manageLocations: "ניהול מקומות אחסון",
-    oneTimeCategory: "חד־פעמי — לחפץ הזה בלבד…",
-    oneTimeName: "שם הקטגוריה החד־פעמית",
-    oneTimeHelp: "נשמר רק לחפץ הזה ולא נוסף לרשימת הקטגוריות.",
-    locationHelp:
-      "בחר מקום שמור או הקלד מקום חד־פעמי. הקלדה לא משנה את הרשימה.",
+    locationHelp: "בחר מקום שמור או הקלד את המיקום המדויק של החפץ.",
     categoryHelp:
       "הוסף אפשרויות קבועות או הסר אותן. הסרת קטגוריה מעבירה את החפצים שבה לכללי, בלי למחוק אותם.",
     newCategoryName: "שם קטגוריה חדשה",
@@ -240,13 +244,16 @@ export const messages = {
     artLocation: "The small drawer by the door",
     artCheck: "✓ One less place to search",
     manageCategories: "Manage categories",
+    addCategory: "＋ Add a new category",
+    addRoom: "＋ Add a new room",
+    manageRooms: "Manage rooms",
+    newRoomName: "New room name",
+    roomHelp: "Add a room to choose it again for other items.",
+    confirmRoomDelete:
+      "Remove “{name}” from saved rooms? Rooms recorded with existing items will stay unchanged.",
+    viewItem: "Open details for {name}",
     manageLocations: "Manage storage places",
-    oneTimeCategory: "One-time — this item only…",
-    oneTimeName: "One-time category name",
-    oneTimeHelp:
-      "Saved only with this item, without adding it to the category list.",
-    locationHelp:
-      "Choose a saved place or type a one-time location. Typing does not change the list.",
+    locationHelp: "Choose a saved place or type the item's exact location.",
     categoryHelp:
       "Add reusable options or remove them. Removing a category moves its items to General without deleting them.",
     newCategoryName: "New category name",

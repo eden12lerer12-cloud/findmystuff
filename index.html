@@ -133,9 +133,9 @@
               type="button"
               id="manage-categories"
               class="text-button"
-              data-i18n="manageCategories"
+              data-i18n="addCategory"
             >
-              ניהול קטגוריות</button
+              הוספת קטגוריה חדשה</button
             ><button
               type="button"
               id="manage-locations"
@@ -286,29 +286,21 @@
           <div class="field-actions">
             <button
               type="button"
+              id="editor-rooms"
+              class="text-button"
+              data-i18n="addRoom"
+            >
+              הוספת חדר חדש
+            </button>
+            <button
+              type="button"
               id="editor-categories"
               class="text-button"
-              data-i18n="manageCategories"
+              data-i18n="addCategory"
             >
-              ניהול קטגוריות
+              הוספת קטגוריה חדשה
             </button>
           </div>
-          <label id="one-time-field" hidden
-            ><span id="one-time-label" data-i18n="oneTimeName"
-              >שם הקטגוריה החד־פעמית</span
-            ><input
-              aria-labelledby="one-time-label"
-              aria-describedby="one-time-help"
-              id="one-time-category"
-              maxlength="60"
-              autocomplete="off"
-            /><small
-              id="one-time-help"
-              class="field-help"
-              data-i18n="oneTimeHelp"
-              >נשמר רק לחפץ הזה ולא נוסף לרשימת הקטגוריות.</small
-            ></label
-          >
           <label
             ><span data-i18n="location">איפה בדיוק?</span>
             <input
@@ -375,6 +367,38 @@
             ביטול
           </button>
         </div>
+      </div>
+    </dialog>
+    <dialog id="item-details" aria-labelledby="item-details-title">
+      <div class="dialog-heading">
+        <h2 id="item-details-title"></h2>
+        <button
+          type="button"
+          id="details-close"
+          class="icon-button"
+          aria-label="סגירת החלון"
+          data-i18n-aria-label="close"
+        >
+          ×
+        </button>
+      </div>
+      <div id="details-content" class="details-content"></div>
+      <div class="dialog-footer">
+        <button
+          type="button"
+          id="details-edit"
+          class="primary"
+          data-i18n="edit"
+        >
+          עריכה</button
+        ><button
+          type="button"
+          id="details-done"
+          class="secondary"
+          data-i18n="done"
+        >
+          סיום
+        </button>
       </div>
     </dialog>
     <dialog id="catalog-dialog" aria-labelledby="catalog-title">
