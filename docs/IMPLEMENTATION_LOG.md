@@ -49,3 +49,11 @@ Limits: browser microphone and provider audio were deliberately not activated; a
 Final review also caught an undo regression: restoring a deleted item could reset its earlier location history. Undo now preserves the full timeline/timestamp and falls back to captured location text if its linked storage node was removed; a regression test covers timeline preservation.
 
 The home overview also includes rooms from manually entered/demo items without inventing or rewriting stored IDs; regression coverage checks that saved catalog entries remain unchanged.
+
+### Final v0.5.0 verification and release
+
+Source commit `a4aec35` passed [CI 39805862065](https://github.com/eden12lerer12-cloud/findmystuff/actions/runs/39805862065) and [Pages 39805862095](https://github.com/eden12lerer12-cloud/findmystuff/actions/runs/39805862095). Published [v0.5.0](https://github.com/eden12lerer12-cloud/findmystuff/releases/tag/v0.5.0). The live HTTPS site reported 0.5.0, preserved three fictional records created under 0.4.0, and showed their manually entered rooms in My home. At 390 px, the new collections dialog measured 352 px with no horizontal page overflow, then the viewport override was reset.
+
+On the public origin, browser network access was temporarily disabled: reload, bilingual search (`Find my passport` matched the Hebrew passport) and worker backup export succeeded. The downloaded v4 JSON was independently parsed and contained all three fictional samples. Networking was restored. Both task tabs remain available for review; no unrelated tabs were closed. The temporary local source preview remains available until the user approves project completion.
+
+Remaining work is explicit: real microphone/provider testing, broader phone/install/accessibility coverage, multipart backups beyond bounds, AI recognition/provider/backend design and evidence of real outside usage. No program application was submitted. No private data or credentials were published, and no paid service was added.

@@ -1,5 +1,7 @@
 # Baseline review
 
+Historical baseline only. For the current v0.5.0 implementation and verification, see [IMPLEMENTATION_LOG.md](IMPLEMENTATION_LOG.md) and [ARCHITECTURE.md](ARCHITECTURE.md).
+
 Reviewed 2026-10-22, before extending the initial implementation against the FindMyStuff vision. This is a code and functional review, not an independent security audit.
 
 ## Existing architecture
