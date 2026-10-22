@@ -1,5 +1,6 @@
 import { addPreset, removePreset } from "./store.js";
 import { normalize } from "./model.js";
+import { itemPlace, isInLocation } from "./locations.js";
 
 export function createCatalogManager({
   getState,
@@ -44,8 +45,9 @@ export function createCatalogManager({
           type === "categories"
             ? item.category === preset.id && !item.categoryLabel
             : type === "rooms"
-              ? item.room === preset.name
-              : item.location === preset.name,
+              ? itemPlace(item, catalog).room === preset.name
+              : isInLocation(item, preset.id, catalog) ||
+                (!item.locationId && item.location === preset.name),
         ).length;
         count.textContent = t("presetUses", { count: uses });
         row.append(name, count);
@@ -150,8 +152,12 @@ export function createCatalogManager({
       await onChange();
       $("catalog-status").textContent = t("presetRemoved");
       $("preset-name").focus();
-    } catch {
-      $("catalog-error").textContent = t("presetError");
+    } catch (error) {
+      $("catalog-error").textContent = t(
+        ["Location has children", "Room has locations"].includes(error.message)
+          ? "parentProtected"
+          : "presetError",
+      );
     } finally {
       $("preset-confirm-delete").disabled = false;
     }

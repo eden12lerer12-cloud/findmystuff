@@ -63,6 +63,7 @@ export function defaultCatalog() {
     })),
     locations: [],
     rooms: [],
+    collections: [],
   };
 }
 export function validatePreset(preset, type) {
@@ -118,6 +119,25 @@ export function validateCatalog(catalog) {
   }
   if (!result.categories.some((preset) => preset.id === "general"))
     throw new Error("Missing fallback category");
+  const collections = catalog.collections ?? [];
+  if (!Array.isArray(collections) || collections.length > 100)
+    throw new Error("Invalid collections");
+  result.collections = collections.map((group) => validateCollection(group));
+  if (
+    new Set(result.collections.map((group) => group.id)).size !==
+    result.collections.length
+  )
+    throw new Error("Duplicate collection IDs");
+  for (const group of result.collections)
+    for (const entry of group.entries) {
+      if (
+        entry.boxId &&
+        !result.locations.some(
+          (place) => place.id === entry.boxId && place.kind === "box",
+        )
+      )
+        throw new Error("Unknown packing box");
+    }
   return validateLocationGraph(result);
 }
 export function validateItem(item, catalog = defaultCatalog()) {
@@ -196,7 +216,7 @@ export function validateBackupObject(backup) {
   if (
     !backup ||
     backup.app !== "where-did-i-put-it" ||
-    ![1, 2, 3].includes(backup.version) ||
+    ![1, 2, 3, 4].includes(backup.version) ||
     !Array.isArray(backup.items) ||
     backup.items.length > BACKUP_LIMITS.maxItems
   )
@@ -210,4 +230,33 @@ export function validateBackupObject(backup) {
 }
 export function parseBackup(text) {
   return parseBackupBundle(text).items;
+}
+
+export function validateCollection(group) {
+  const preset = validatePreset(group, "rooms");
+  if (
+    !["collection", "moving"].includes(group.kind) ||
+    !Array.isArray(group.entries) ||
+    group.entries.length > BACKUP_LIMITS.maxItems
+  )
+    throw new Error("Invalid collection");
+  const entries = group.entries.map((entry) => {
+    if (!entry || typeof entry !== "object")
+      throw new Error("Invalid collection entry");
+    const value = { itemId: field(entry.itemId, 80, true) };
+    if (group.kind === "moving") {
+      if (typeof entry.packed !== "boolean")
+        throw new Error("Invalid packing status");
+      value.packed = entry.packed;
+      if (entry.boxId !== undefined) value.boxId = field(entry.boxId, 80, true);
+      if (entry.boxName !== undefined)
+        value.boxName = field(entry.boxName, 2000, true);
+      if (value.packed && !value.boxId && !value.boxName)
+        throw new Error("Choose a packing box");
+    }
+    return value;
+  });
+  if (new Set(entries.map((entry) => entry.itemId)).size !== entries.length)
+    throw new Error("Duplicate collection entries");
+  return { ...preset, kind: group.kind, entries };
 }

@@ -142,3 +142,14 @@ test("version 2 migration preserves every record and ID; structured saves and ba
     validateItem({ ...item, locationId: "missing" }, state.catalog),
   );
 });
+
+test("undoing deletion preserves the full location history and recorded timestamp", () => {
+  const moved = withLocationHistory(item, {
+    ...item,
+    location: "New shelf",
+    updatedAt: "2026-10-03T10:00:00Z",
+  });
+  const restored = withLocationHistory(undefined, moved);
+  assert.deepEqual(restored.history, moved.history);
+  assert.equal(restored.locationRecordedAt, moved.locationRecordedAt);
+});

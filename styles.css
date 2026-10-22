@@ -1615,3 +1615,116 @@ summary:focus-visible {
   background: var(--white);
   color: var(--muted);
 }
+#qr-canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 20px auto;
+  image-rendering: pixelated;
+}
+#qr-link {
+  font-size: 11px;
+  overflow-wrap: anywhere;
+  text-decoration: underline;
+}
+#qr-dialog p {
+  line-height: 1.7;
+}
+@media print {
+  body > * {
+    display: none !important;
+  }
+  body > #qr-dialog[open] {
+    display: block !important;
+    position: static;
+    max-width: none;
+    width: 100%;
+    height: auto;
+    max-height: none;
+    border: 0;
+    color: #000;
+    background: #fff;
+  }
+  #qr-dialog::backdrop {
+    background: transparent;
+  }
+  #qr-dialog .dialog-footer,
+  #qr-dialog [data-i18n="qrPrivacy"],
+  #qr-link {
+    display: none !important;
+  }
+}
+.collection-tools {
+  margin-block: 12px;
+}
+.collection-create {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: end;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+#collections-dialog label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+}
+#collections-dialog .check-label {
+  flex-direction: row;
+  align-items: center;
+  margin-block: 12px;
+}
+#collections-dialog input:not([type="checkbox"]),
+#collections-dialog select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--ink);
+}
+.collection-entry {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+.collection-entry .text-button {
+  margin-inline-end: 14px;
+}
+#collection-candidates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block: 14px;
+}
+#collection-entry-list {
+  max-height: 45vh;
+  overflow: auto;
+  margin-bottom: 20px;
+}
+@media (max-width: 600px) {
+  .collection-create > * {
+    width: 100%;
+  }
+  .collection-entry {
+    padding-block: 14px;
+  }
+}
+#voice-dialog p {
+  line-height: 1.8;
+}
+#voice-dialog textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: var(--white);
+}
+#voice-microphone {
+  margin-block: 20px;
+  padding: 14px;
+  background: var(--lavender);
+  border-radius: 12px;
+}

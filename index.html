@@ -2,7 +2,7 @@
 <html lang="he" dir="rtl">
   <head>
     <meta charset="utf-8" />
-    <meta name="application-version" content="0.4.0" />
+    <meta name="application-version" content="0.5.0" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta name="theme-color" content="#7161d4" />
     <meta
@@ -14,6 +14,8 @@
       content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"
     />
     <title>FindMyStuff — איפה שמתי?</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./icon-192.png" />
     <link rel="icon" href="./icon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./styles.css" />
     <script type="module" src="./src/app.js"></script>
@@ -110,6 +112,18 @@
           <h3 data-i18n="recentPlaces">מקומות שנפתחו לאחרונה</h3>
           <div id="recent-place-list"></div>
         </section>
+        <div class="collection-tools">
+          <button id="open-voice" class="text-button" data-i18n="voiceTitle">
+            הזנה חופשית או קולית
+          </button>
+          <button
+            id="open-collections"
+            class="text-button"
+            data-i18n="collections"
+          >
+            אוספים ורשימות מעבר
+          </button>
+        </div>
         <div class="toolbar">
           <div class="search-wrap">
             <span aria-hidden="true">⌕</span
@@ -237,12 +251,151 @@
             מחיקת כל הנתונים שלי
           </button>
         </div>
+        <p id="offline-status" role="status"></p>
         <p data-i18n="storageNotice">
           הנתונים נשמרים בדפדפן ובמכשיר הזה. ניקוי נתוני האתר עלול למחוק אותם —
           כדאי לייצא גיבוי.
         </p>
       </footer>
     </main>
+    <dialog id="voice-dialog" aria-labelledby="voice-title">
+      <div class="dialog-heading">
+        <h2 id="voice-title" data-i18n="voiceTitle"></h2>
+        <button
+          id="voice-close"
+          class="icon-button"
+          data-i18n-aria-label="close"
+        >
+          ×
+        </button>
+      </div>
+      <form id="voice-form" class="home-body">
+        <p data-i18n="voiceHelp"></p>
+        <label
+          ><span data-i18n="voiceText"></span
+          ><textarea
+            id="voice-text"
+            rows="3"
+            maxlength="2000"
+            required
+            data-i18n-placeholder="voiceExample"
+          ></textarea>
+        </label>
+        <p
+          id="voice-unavailable"
+          class="field-help"
+          data-i18n="voiceUnavailable"
+        ></p>
+        <div id="voice-microphone" hidden>
+          <p data-i18n="voicePrivacy"></p>
+          <label class="check-label"
+            ><input type="checkbox" id="voice-consent" /><span
+              data-i18n="voiceConsent"
+            ></span></label
+          ><button
+            type="button"
+            id="voice-start"
+            class="secondary"
+            data-i18n="voiceStart"
+          ></button
+          ><button
+            type="button"
+            id="voice-stop"
+            class="text-button"
+            data-i18n="voiceStop"
+          ></button>
+        </div>
+        <p id="voice-transcript" role="status"></p>
+        <p id="voice-error" class="form-error" role="alert"></p>
+        <button class="primary" data-i18n="voiceUse"></button>
+      </form>
+    </dialog>
+    <dialog id="collections-dialog" aria-labelledby="collections-title">
+      <div class="dialog-heading">
+        <h2 id="collections-title" data-i18n="collections"></h2>
+        <button
+          id="collections-close"
+          class="icon-button"
+          data-i18n-aria-label="close"
+        >
+          ×
+        </button>
+      </div>
+      <div class="home-body">
+        <form id="collection-create" class="collection-create">
+          <label
+            ><span data-i18n="collectionName"></span
+            ><input id="collection-name" maxlength="80" required /></label
+          ><label
+            ><span data-i18n="collectionKind"></span
+            ><select id="collection-kind">
+              <option
+                value="collection"
+                data-i18n="collectionKindGroup"
+              ></option>
+              <option
+                value="moving"
+                data-i18n="collectionKindMoving"
+              ></option></select></label
+          ><button class="primary" data-i18n="createCollection"></button>
+        </form>
+        <p id="collections-error" role="alert" class="form-error"></p>
+        <label
+          ><span data-i18n="chooseCollection"></span
+          ><select id="collection-select"></select
+        ></label>
+        <div id="collection-controls" hidden>
+          <p id="collection-description" class="field-help"></p>
+          <p id="collection-count"></p>
+          <div id="collection-entry-list"></div>
+          <label
+            ><span data-i18n="findMember"></span
+            ><input id="collection-search" type="search"
+          /></label>
+          <p class="field-help" data-i18n="candidateHelp"></p>
+          <div id="collection-candidates"></div>
+          <button
+            id="collection-delete"
+            class="text-button"
+            data-i18n="deleteCollection"
+          ></button>
+          <div id="collection-delete-confirm" hidden>
+            <p data-i18n="deleteCollectionHelp"></p>
+            <button
+              id="collection-delete-yes"
+              class="secondary"
+              data-i18n="deleteCollection"
+            ></button
+            ><button
+              id="collection-delete-cancel"
+              class="secondary"
+              data-i18n="cancel"
+            ></button>
+          </div>
+        </div>
+      </div>
+    </dialog>
+    <dialog id="qr-dialog" aria-labelledby="qr-title">
+      <div class="home-body">
+        <h2 id="qr-title" data-i18n="qrTitle">QR למקום אחסון</h2>
+        <h3 id="qr-name"></h3>
+        <canvas
+          id="qr-canvas"
+          role="img"
+          data-i18n-aria-label="qrTitle"
+        ></canvas>
+        <p><a id="qr-link"></a></p>
+        <p data-i18n="qrPrivacy"></p>
+        <div class="dialog-footer">
+          <button id="qr-print" class="primary" data-i18n="print">הדפסה</button
+          ><button id="qr-download" class="secondary" data-i18n="downloadQR">
+            הורדת QR</button
+          ><button id="qr-close" class="secondary" data-i18n="close">
+            סגירה
+          </button>
+        </div>
+      </div>
+    </dialog>
     <dialog id="guide-dialog" aria-labelledby="guide-title">
       <div class="home-body">
         <h2 id="guide-title" data-i18n="guideTitle">ארבעה צעדים</h2>

@@ -160,7 +160,7 @@ export async function mutate(
   return update(({ items, settings, catalog, tx }) => {
     if (importedCatalog) {
       const incoming = validateCatalog(importedCatalog);
-      for (const type of ["categories", "locations", "rooms"]) {
+      for (const type of ["categories", "locations", "rooms", "collections"]) {
         const ids = new Set(catalog[type].map((preset) => preset.id));
         catalog[type].push(
           ...incoming[type].filter((preset) => !ids.has(preset.id)),
@@ -250,6 +250,14 @@ export async function removePreset(type, id) {
       catalog.locations.some((node) => node.roomId === id)
     )
       throw new Error("Room has locations");
+    if (type === "locations") {
+      for (const group of catalog.collections)
+        for (const entry of group.entries)
+          if (entry.boxId === id) {
+            entry.boxName = resolveLocation(catalog, id).location;
+            delete entry.boxId;
+          }
+    }
     const previous = catalog;
     const oldLocations = [...catalog.locations];
     catalog[type] = catalog[type].filter((preset) => preset.id !== id);
@@ -323,4 +331,23 @@ export async function eraseAll() {
     tx.onerror = () => reject(tx.error);
     tx.onabort = () => reject(tx.error ?? new Error("Erase aborted"));
   });
+}
+
+export async function saveCollection(group, expectedGeneration) {
+  await update(({ catalog, settings }) => {
+    const index = catalog.collections.findIndex(
+      (value) => value.id === group.id,
+    );
+    if (index < 0) catalog.collections.push(group);
+    else catalog.collections[index] = group;
+    settings.put({ id: "catalog", ...validateCatalog(catalog) });
+  }, expectedGeneration);
+}
+export async function deleteCollection(id, expectedGeneration) {
+  await update(({ catalog, settings }) => {
+    catalog.collections = catalog.collections.filter(
+      (group) => group.id !== id,
+    );
+    settings.put({ id: "catalog", ...catalog });
+  }, expectedGeneration);
 }

@@ -9,16 +9,16 @@ The [mission](MISSION.md) is the long-term direction. This list distinguishes sh
 3. UX: quick add, details actions, light/dark/system themes, mobile RTL/LTR, optional onboarding, recent locations, incremental card rendering and explicit erase-all.
 4. Release preparation: static build, Pages pipeline, fictional opt-in demo, feedback warning, community/security/dependency documentation and honest readiness assessment. See [verification log](IMPLEMENTATION_LOG.md) for actual deployment evidence.
 
-## Milestone 5 — small, opt-in extensions
+## Milestone 5 — optional tools in 0.5.0
 
-Implement and verify in separate increments, keeping the initial release simple:
+Implemented and tested incrementally after the 0.4.0 release:
 
-- Printable QR labels linking to opaque local location IDs. Explain same-browser/device limits. Never embed inventory, names or photos in public URLs.
-- Local collections for related items, independent of physical storage. Preserve memberships in backups, avoid deleting items when deleting groups.
-- Separate moving checklist using selected items/boxes with confirmed packing status, not automatic physical tracking.
-- Installable offline PWA: scoped static-asset allowlist, explicit update behavior, no private-data response caching. Check offline startup and backup worker loading under Pages path.
-- Optional voice input with clear disclosure that some browsers send audio to a recognition service; detect support, require opt-in/microphone consent, preview parsed fields and confirm manually.
-- Optional photo recognition remains an experiment: provider selection, explicit photo-upload consent, uncertain suggestions and user confirmation. No credentials in frontend, no paid default or mandatory service.
+- Local printable QR labels with opaque IDs and explicit same-device/browser limits.
+- Related-item collections and a separate moving/packing plan with saved boxes, QR access and explicit checkboxes. Physical location records remain independent.
+- Static-only scoped PWA caching, install metadata and safe waiting updates. Offline startup, record retrieval and backup export checked in a real browser.
+- Typed natural-language input and optional browser speech adapter. Consent/disclosure precedes recognition; suggestions open a reviewable editor. Hardware microphone/recognition-provider testing remains open.
+
+**Still future:** AI photo recognition. No provider/backend/key has been configured, so no upload or recognition is offered. Implement only with explicit informed consent, uncertain suggestions, manual confirmation and tested credential protection. Free manual photos and typed search stay available. This is intentionally documented as unfinished, rather than exposing a cosmetic AI button.
 
 ## Reliability and community follow-ups
 

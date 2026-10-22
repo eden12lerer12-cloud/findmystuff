@@ -1,0 +1,7 @@
+# Additive collections and packing schema (milestone 5)
+
+Defined before implementation. Database version/stores remain 3 (`items`, `settings`): only optional catalog metadata is added. Existing records, IDs and catalog lists are preserved. Missing `catalog.collections` means an empty list. New backups use version 4; imports retain versions 1–4. Older application versions should not import v4 because they do not preserve collections.
+
+Up to 100 collections: `{id,name,kind,entries}`. Kind is `collection` or `moving`. Entries contain `itemId`; moving entries add `packed` and optionally `boxId`/`boxName` snapshots. Membership does not change physical item location or history. Each collection permits up to 20,000 unique item references. Missing/deleted item references are retained as explicit missing entries so undo/import never silently drops the checklist. Users can remove them manually.
+
+Packed entries require an explicitly chosen saved box (or a preserved name after box deletion). Deleting a box detaches collection links and preserves its recorded label. Deleting a collection never deletes items. Imports merge collections by ID, preserving existing collections as with other catalog lists. Collection saves and erasure share the existing generation guard; all metadata is validated before atomic writes. Tests must cover old catalogs, round trips, packing, deletion and stale writes.

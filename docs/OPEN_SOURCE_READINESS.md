@@ -18,7 +18,7 @@ GitHub API/CLI inspection of `eden12lerer12-cloud/findmystuff` on 2026-10-22:
 | Issues at inspection                         | 0                                                                                                                  |
 | Published releases before this preparation   | 0                                                                                                                  |
 | Prior CI and Pages runs                      | Successful for commit `841aab3`                                                                                    |
-| Current validation                           | 45 local tests, clean install/build and manual browser QA; latest deploy recorded separately in implementation log |
+| Current validation                           | 53 local tests, clean install/build and manual browser QA; latest deploy recorded separately in implementation log |
 | Actual users, installs, retention, downloads | Unknown; no telemetry or independent usage evidence                                                                |
 
 The maintainer's own activity and development screenshots are not independent adoption. No users/stars/downloads have been invented. Metrics can change after this snapshot; verify before applying.
@@ -36,7 +36,7 @@ The maintainer's own activity and development screenshots are not independent ad
 - Device/screen-reader coverage and browser automation are limited; document findings and fix reproducible problems.
 - Memory/quota and 50 MiB backup bounds limit very large inventories; multipart recovery needs a deliberate design.
 - Broader ecosystem relevance has not been demonstrated. Measure usefulness through voluntary feedback and resolved reports, without adding tracking by default.
-- Advanced recognition/voice/sync features are not evidence of demand. Ship them only when tested and useful.
+- Optional QR/collections/offline tools are available; voice hardware testing and recognition/sync remain weak points. Feature count is not evidence of demand.
 
 ## Codex for Open Source
 

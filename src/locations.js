@@ -65,8 +65,8 @@ export function withLocationHistory(previous, item) {
   if (!previous)
     return {
       ...item,
-      locationRecordedAt: item.updatedAt,
-      history: [entry(item)],
+      locationRecordedAt: item.locationRecordedAt ?? item.updatedAt,
+      history: item.history ?? [entry(item)],
     };
   if (!moved)
     return {

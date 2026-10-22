@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.5.0 — 2026-10-22
+
+Optional tools after the initial 0.4 release:
+
+- Local printable/downloadable QR labels and same-browser location links; independent decoder round-trip test.
+- Related collections and separate packing checklists with box selection, explicit packed status and safe deletion. Additive v4 backups import older versions 1–3.
+- Typed/optional spoken commands open search or an editable draft, with browser-audio disclosure and explicit consent before microphone use.
+- Scoped, static-only offline PWA cache, installation manifest/icons, content-hash updates and production asset/import validation.
+
+No AI photo recognition or cloud sync. Hardware microphone/provider testing and broader PWA device testing remain open. Close all app windows to activate a waiting offline update.
+
 ## 0.4.0 — 2026-10-22
 
 Early public testing release. Existing inventory IDs/photos/notes survive the additive database v3 upgrade.

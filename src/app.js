@@ -16,6 +16,12 @@ import {
   recentLocations,
   clearPreferences,
 } from "./preferences.js";
+import { setupVoice } from "./voice-ui.js";
+import { matchSearch } from "./search.js";
+import { normalize } from "./text.js";
+import { setupCollections } from "./collections-ui.js";
+import { setupOffline } from "./offline.js";
+import { setupQR, locationFromHash } from "./qr.js";
 const $ = (id) => document.getElementById(id);
 let language = "he";
 try {
@@ -169,6 +175,42 @@ const catalogManager = createCatalogManager({
     }
   },
 });
+const voiceUI = setupVoice({
+  t,
+  getLanguage: () => language,
+  onSearch: (query) => {
+    resetFilters();
+    $("search").value = query;
+    render();
+    $("search").focus();
+  },
+  onDraft: (suggestion) => {
+    const matches = items.filter(
+      (item) => matchSearch(item.name, suggestion.name).matches,
+    );
+    openEditor(matches.length === 1 ? matches[0] : undefined);
+    if (matches.length !== 1) $("item-name").value = suggestion.name;
+    const places = catalog.locations.filter((place) =>
+      normalize(suggestion.location).includes(normalize(place.name)),
+    );
+    $("item-location-id").value = places.length === 1 ? places[0].id : "";
+    $("item-room").value = "";
+    $("item-location").value = suggestion.location;
+    selectLocation();
+    toast(t("voiceReview"));
+  },
+});
+const collectionsUI = setupCollections({
+  getState: () => ({ items, catalog, generation }),
+  t,
+  onChange: async () => {
+    await refresh();
+    channel?.postMessage("changed");
+  },
+  onView: openDetails,
+  openQR: (id) => qrUI.open(id),
+});
+const qrUI = setupQR({ getState: () => ({ catalog }), t });
 const homeUI = setupHome({
   getState: () => ({ items, catalog }),
   t,
@@ -184,6 +226,7 @@ const homeUI = setupHome({
     render();
   },
   addRoom: () => catalogManager.open("rooms"),
+  openQR: (id) => qrUI.open(id),
 });
 function selectLocation() {
   const id = $("item-location-id").value;
@@ -230,7 +273,9 @@ async function saveChanges(changes, removedId, importedCatalog) {
   await refresh();
   channel?.postMessage("changed");
 }
-function resetFilters() {
+function resetFilters(preserveRoute = false) {
+  if (preserveRoute !== true && locationFromHash(location.hash))
+    history.replaceState(null, "", location.pathname + location.search);
   visibleLimit = 36;
   room = "";
   selectedLocationId = "";
@@ -247,6 +292,7 @@ function render() {
   renderCatalogOptions();
   catalogManager.render();
   homeUI.render();
+  collectionsUI.render();
   const rooms = [
     ...new Set([
       ...items.map((i) => itemPlace(i, catalog).room),
@@ -381,7 +427,7 @@ function itemCard(item) {
 async function deleteRecord(item) {
   try {
     await saveChanges([], item.id);
-    deletedItem = item;
+    deletedItem = { ...item, ...itemPlace(item, catalog) };
     toast(t("deleted"), true);
   } catch (error) {
     fail(error);
@@ -429,6 +475,15 @@ function renderDetails(item) {
         date: new Date(
           item.locationRecordedAt ?? item.updatedAt,
         ).toLocaleString(language === "he" ? "he-IL" : "en-US"),
+      }),
+    ),
+    node(
+      "p",
+      "field-help",
+      t("lastEdited", {
+        date: new Date(item.updatedAt).toLocaleString(
+          language === "he" ? "he-IL" : "en-US",
+        ),
       }),
     ),
     node("p", "field-help", t("accuracy")),
@@ -645,6 +700,11 @@ $("undo").onclick = async () => {
     await saveChanges([
       {
         ...deletedItem,
+        locationId: catalog.locations.some(
+          (place) => place.id === deletedItem.locationId,
+        )
+          ? deletedItem.locationId
+          : undefined,
         category: catalog.categories.some((p) => p.id === deletedItem.category)
           ? deletedItem.category
           : "general",
@@ -776,6 +836,8 @@ function renderRecent() {
 }
 function resetPrivateUI() {
   backups.cancel();
+  voiceUI.cancel();
+  collectionsUI.reset();
   clearTimeout(searchTimer);
   editorSession++;
   deletedItem = null;
@@ -783,7 +845,13 @@ function resetPrivateUI() {
   editingId = null;
   viewingId = null;
   for (const form of document.querySelectorAll("form")) form.reset();
-  for (const id of ["details-content", "home-tree", "preset-list"])
+  for (const id of [
+    "details-content",
+    "home-tree",
+    "preset-list",
+    "collection-entry-list",
+    "collection-candidates",
+  ])
     $(id).replaceChildren();
   updatePhoto();
   $("toast").hidden = true;
@@ -859,3 +927,22 @@ try {
   render();
   fail(error);
 }
+
+function routeLocation() {
+  const id = locationFromHash(location.hash);
+  if (!id) return;
+  if (!catalog.locations.some((place) => place.id === id)) {
+    toast(t("qrMissing"));
+    return;
+  }
+  for (const dialog of document.querySelectorAll("dialog[open]"))
+    dialog.close();
+  resetFilters(true);
+  selectedLocationId = id;
+  rememberLocation(id);
+  render();
+  $("search").focus();
+}
+window.addEventListener("hashchange", routeLocation);
+if (ready) routeLocation();
+setupOffline({ t });

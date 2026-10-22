@@ -16,7 +16,7 @@ Implemented additive database v3 migration, nested home storage (up to eight lev
 
 Validation: 43 automated tests, production build, legacy v1/v2 database fixtures preserved, v1/v2/v3 backup compatibility and v3 round trip. Live browser: nested drawer creation, rename, descendant filtering, reload persistence, notes-only edit and confirmed move produced exactly two history entries. Worker-exported v3 backup parsed independently and reimported with all four existing IDs preserved. Temporary test item/locations removed afterward; original three fictional demo records retained.
 
-Limits: 500 saved rooms/locations per catalog, eight hierarchy levels, 1,000 history events per item; limits reject instead of silently truncating. Backups retain the 50 MiB/20,000-item safety limits. Synonyms are intentionally finite. Screenshots are fictional examples. Next: dashboard, theme, onboarding and release verification.
+Limits: 500 saved rooms and 1,000 storage nodes per catalog, eight hierarchy levels, 1,000 history events per item; limits reject instead of silently truncating. Backups retain the 50 MiB/20,000-item safety limits. Synonyms are intentionally finite. Screenshots are fictional examples. Next: dashboard, theme, onboarding and release verification.
 
 ## Milestone 3 — User experience and privacy controls
 
@@ -33,3 +33,17 @@ Verified repository owner/name, origin, `main` default branch and Pages `workflo
 Validation before push: clean `npm ci`, 45 passing tests, static build, production dependency audit (no runtime dependencies), diff whitespace check and live browser from the built `/findmystuff/` path. All modules/CSS/icons loaded; version metadata showed 0.4.0, three original fictional samples persisted and details exposed separate Edit/Delete. No credentials or personal inventories are included in the runtime artifact. Source and Pages deploy verification follow below.
 
 Known risks: external testing and long-term adoption remain unverified; static hosting has ordinary provider request logs. Advanced features are intentionally separate increments. The readiness document records actual zero-star/zero-fork metrics and one maintainer account, with no invented users.
+
+### Milestone 4 — verified deployment
+
+Commit `041c2e2` passed the GitHub Pages workflow [39803856459](https://github.com/eden12lerer12-cloud/findmystuff/actions/runs/39803856459). The public HTTPS site was opened in Chrome and its metadata read as 0.4.0; onboarding appeared and inventory began empty, confirming it did not inherit localhost records. Published [v0.4.0](https://github.com/eden12lerer12-cloud/findmystuff/releases/tag/v0.4.0), added truthful topics and set the verified homepage.
+
+## Milestone 5 — optional organization/input/offline tools
+
+Implemented local QR labels, collection membership, separate packing checklists, typed/optional speech command drafts and an installable static-shell PWA. A pinned MIT QR encoder is vendored locally with attribution; an independent development-only decoder verifies its output. Schema v4 was documented before adding optional collection metadata; database stores/old IDs remain unchanged. Backups export v4 and import v1–4.
+
+Validation: 53 tests covering QR decode/privacy, worker cache isolation, collection packing/deletion/round trips, stale saves and explicit-start speech mocks, alongside all earlier regression cases. Live browser: offline reload retrieved existing records and downloaded a worker-prepared backup; networking was restored afterward. QR dialog/link filtered the correct local box; packing survived reload and box removal preserved its name/status. Exported v4 JSON was parsed independently and reimported while preserving three existing IDs. Comparing all three records to the original M1 export gave exact equality. Typed Hebrew suggestions opened a draft without a database write; a multiword-name parser bug found in browser QA was fixed and regression-tested. Temporary box/list fixtures were removed; original records retained.
+
+Limits: browser microphone and provider audio were deliberately not activated; adapter tests use a mock, with typed fallback verified live. Browser/OS installation prompts vary; manifest/offline behavior are tested, not every phone platform. AI photo recognition is still future work: no approved provider/backend is configured and no uploads occur. The core remains free. Final production/deployment checks follow below.
+
+Final review also caught an undo regression: restoring a deleted item could reset its earlier location history. Undo now preserves the full timeline/timestamp and falls back to captured location text if its linked storage node was removed; a regression test covers timeline preservation.

@@ -1,7 +1,14 @@
 import { addLocation, renamePlace } from "./store.js";
 import { resolveLocation, isInLocation, itemPlace } from "./locations.js";
 
-export function setupHome({ getState, t, onChange, onFilter, addRoom }) {
+export function setupHome({
+  getState,
+  t,
+  onChange,
+  onFilter,
+  addRoom,
+  openQR,
+}) {
   const $ = (id) => document.getElementById(id);
   let renaming = null;
   function button(text, callback, className = "text-button", label) {
@@ -81,6 +88,7 @@ export function setupHome({ getState, t, onChange, onFilter, addRoom }) {
           t("renameNamed", { name: place.name }),
         ),
       );
+      actions.append(button(t("qrTitle"), () => openQR(place.id)));
       details.append(actions);
       for (const child of catalog.locations.filter(
         (node) => node.parentId === place.id,

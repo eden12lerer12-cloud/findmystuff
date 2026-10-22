@@ -1,5 +1,67 @@
 export const messages = {
   he: {
+    lastEdited: "פרטי החפץ עודכנו ב־{date}",
+    parentProtected:
+      "המקום מכיל מקומות אחסון בתוכו. הסר קודם את המקומות שבתוכו.",
+    voiceTitle: "הזנה חופשית או קולית",
+    voiceHelp:
+      "אפשר להקליד משפט או להכתיב. משפט כמו ׳שמתי את הארנק במגירה׳ יפתח טיוטה לבדיקה; שאלה תפתח חיפוש. שום חפץ לא יישמר עד שתלחץ שמירה בטופס.",
+    voiceText: "מה תרצה לזכור או לחפש?",
+    voiceExample: "שמתי את הארנק במגירה בחדר שינה",
+    voiceUnavailable: "זיהוי קולי לא נתמך בדפדפן הזה. אפשר להקליד כרגיל.",
+    voicePrivacy:
+      "זיהוי הדיבור מופעל על ידי הדפדפן, וייתכן שהשמע יישלח לשירות הזיהוי שלו. האפליקציה אינה שומרת הקלטות. הפעלה דורשת בחירה והרשאת מיקרופון; אפשר להשתמש בכל התוכנה בלי זה.",
+    voiceConsent:
+      "אני מסכים להפעלת זיהוי הדיבור של הדפדפן ולהעברת שמע אפשרית לשירות שלו",
+    voiceConsentRequired: "סמן הסכמה לפני הפעלת המיקרופון.",
+    voiceStart: "התחלת הכתבה",
+    voiceStop: "עצירה",
+    voiceListening: "מקשיבים… אפשר לעצור בכל רגע.",
+    voiceReview: "בדוק את השם והמיקום לפני שמירה. ההצעה עשויה להיות שגויה.",
+    voiceError:
+      "לא ניתן לזהות או לפרש את המשפט. אפשר לערוך את הטקסט ולהמשיך ידנית.",
+    voiceUse: "בדיקת המשפט והמשך",
+
+    collections: "אוספים ורשימות מעבר",
+    collectionName: "שם האוסף או המעבר",
+    collectionKind: "סוג הרשימה",
+    collectionKindGroup: "אוסף חפצים",
+    collectionKindMoving: "רשימת מעבר דירה",
+    createCollection: "יצירת רשימה",
+    chooseCollection: "בחירת רשימה",
+    collectionHelp:
+      "האוסף מקשר בין חפצים. המיקום האמיתי של כל חפץ נשאר כפי שתיעדת.",
+    movingHelp:
+      "בחר קופסה וסמן במפורש מה נארז. זו רשימת תכנון נפרדת; היא לא משנה את מיקום החפץ. קופסאות יוצרים בבית שלי.",
+    packedCount: "נארזו {packed} מתוך {total}",
+    memberCount: "{count} חפצים באוסף",
+    missingMember: "חפץ שאינו זמין כרגע",
+    viewDetails: "פתיחת פרטי החפץ",
+    packingBox: "קופסה עבור {name}",
+    chooseBox: "בחירת קופסה…",
+    packedNamed: "{name} נארז",
+    removeMember: "הסרה מהרשימה",
+    addMember: "הוספת {name}",
+    findMember: "חיפוש חפץ להוספה",
+    candidateHelp: "מוצגות עד 30 אפשרויות. הקלד שם כדי למצוא חפצים נוספים.",
+    deleteCollection: "מחיקת הרשימה",
+    deleteCollectionHelp: "למחוק את הרשימה הזו? החפצים עצמם לא יימחקו.",
+    collectionError: "לא ניתן לשמור את הרשימה. בדוק את הבחירה, רענן ונסה שוב.",
+
+    qrTitle: "QR למקום אחסון",
+    print: "הדפסה",
+    downloadQR: "הורדת QR",
+    qrPrivacy:
+      "הקוד מכיל רק קישור עם מזהה המקום. הוא אינו משתף חפצים. סריקה במכשיר או בדפדפן אחר לא תעביר את הנתונים; צריך לייבא שם גיבוי פרטי. שם המקום המודפס על התווית גלוי למי שרואה אותה.",
+    qrMissing:
+      "המקום מהקישור אינו קיים בדפדפן הזה. פתח במכשיר המקורי או ייבא את הגיבוי המתאים.",
+    offlineReady: "האפליקציה זמינה לפתיחה ללא אינטרנט בדפדפן הזה.",
+    offlinePreparing: "מכינים את קובצי האפליקציה לשימוש ללא אינטרנט…",
+    offlineUpdate:
+      "עדכון מוכן. סגור את כל חלונות האפליקציה ופתח שוב כדי לעדכן.",
+    offlineUnavailable:
+      "שמירה לפתיחה ללא אינטרנט אינה זמינה כרגע. הנתונים עדיין נשמרים מקומית.",
+
     theme: "תצוגה",
     themeSystem: "לפי המכשיר",
     themeLight: "בהיר",
@@ -203,9 +265,74 @@ export const messages = {
     presetRemoved: "האפשרות הוסרה מהרשימה. החפצים נשמרו.",
     done: "סיום",
     importCatalogNotice:
-      "הגיבוי כולל גם רשימות קטגוריות ומקומות. אפשרויות חסרות יתווספו; אפשרויות קיימות לא יימחקו.",
+      "הגיבוי עשוי לכלול קטגוריות, מקומות ואוספים. רשימות חסרות יתווספו; רשימות עם מזהה קיים יישמרו כפי שהן.",
   },
   en: {
+    lastEdited: "Item details updated {date}",
+    parentProtected:
+      "This place contains other storage locations. Remove its children first.",
+    voiceTitle: "Type or speak",
+    voiceHelp:
+      "Type a sentence or dictate. ‘I put my wallet in the bedroom drawer’ opens a draft for review; a question opens search. No item is saved until you press Save in the form.",
+    voiceText: "What would you like to remember or find?",
+    voiceExample: "I put my wallet in the bedroom drawer",
+    voiceUnavailable:
+      "Speech recognition is unavailable in this browser. Typing works normally.",
+    voicePrivacy:
+      "Speech recognition is provided by your browser and may send audio to its recognition service. The app does not store recordings. Starting requires your choice and microphone permission; the rest of the app works without it.",
+    voiceConsent:
+      "I agree to browser speech recognition and possible audio transmission to its service",
+    voiceConsentRequired: "Choose consent before starting the microphone.",
+    voiceStart: "Start dictation",
+    voiceStop: "Stop",
+    voiceListening: "Listening… you can stop at any time.",
+    voiceReview:
+      "Review the name and location before saving. Suggestions may be wrong.",
+    voiceError:
+      "Could not recognize or interpret the sentence. Edit the text and continue manually.",
+    voiceUse: "Review sentence and continue",
+
+    collections: "Collections and moving lists",
+    collectionName: "Collection or move name",
+    collectionKind: "List type",
+    collectionKindGroup: "Item collection",
+    collectionKindMoving: "Moving checklist",
+    createCollection: "Create list",
+    chooseCollection: "Choose list",
+    collectionHelp:
+      "Collections connect related items. Each item's recorded physical location stays unchanged.",
+    movingHelp:
+      "Choose a box and explicitly mark what is packed. This separate plan does not change item locations. Create boxes in My home.",
+    packedCount: "Packed {packed} of {total}",
+    memberCount: "{count} items in collection",
+    missingMember: "Item currently unavailable",
+    viewDetails: "Open item details",
+    packingBox: "Box for {name}",
+    chooseBox: "Choose a box…",
+    packedNamed: "{name} is packed",
+    removeMember: "Remove from list",
+    addMember: "Add {name}",
+    findMember: "Find an item to add",
+    candidateHelp: "Up to 30 options shown. Type a name to find more items.",
+    deleteCollection: "Delete list",
+    deleteCollectionHelp: "Delete this list? The items themselves will remain.",
+    collectionError:
+      "Could not save the list. Check your selection, refresh and try again.",
+
+    qrTitle: "Storage location QR",
+    print: "Print",
+    downloadQR: "Download QR",
+    qrPrivacy:
+      "The code contains only a link with a location ID. It shares no inventory. Scanning on another device or browser does not transfer your data; import your private backup there first. The location name printed on the label is visible to anyone who sees it.",
+    qrMissing:
+      "This location is not in this browser. Open it on the original device or import the matching private backup.",
+    offlineReady: "The app is available to open offline in this browser.",
+    offlinePreparing: "Preparing static application files for offline use…",
+    offlineUpdate:
+      "An update is ready. Close all app windows and reopen to update.",
+    offlineUnavailable:
+      "Offline startup is currently unavailable. Your records are still stored locally.",
+
     theme: "Appearance",
     themeSystem: "Device setting",
     themeLight: "Light",
@@ -415,7 +542,7 @@ export const messages = {
     presetRemoved: "Removed from the list. Your items were preserved.",
     done: "Done",
     importCatalogNotice:
-      "This backup also includes category and place lists. Missing options will be added; existing options will not be removed.",
+      "The backup may include categories, places and collections. Missing lists will be added; lists with existing IDs stay unchanged.",
   },
 };
 export const supportedLanguages = ["he", "en"];
