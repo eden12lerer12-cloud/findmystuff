@@ -7,6 +7,7 @@ import {
   withLocationHistory,
   itemPlace,
   isInLocation,
+  homeRooms,
 } from "../src/locations.js";
 import {
   addPreset,
@@ -152,4 +153,22 @@ test("undoing deletion preserves the full location history and recorded timestam
   const restored = withLocationHistory(undefined, moved);
   assert.deepEqual(restored.history, moved.history);
   assert.equal(restored.locationRecordedAt, moved.locationRecordedAt);
+});
+
+test("home overview includes manual legacy rooms without inventing stored IDs", () => {
+  const catalog = defaultCatalog();
+  catalog.rooms = [{ id: "saved", name: "Bedroom" }];
+  const rooms = homeRooms(
+    [
+      { ...item, room: "Bedroom" },
+      { ...item, room: "Kitchen" },
+      { ...item, room: "Kitchen" },
+    ],
+    catalog,
+  );
+  assert.deepEqual(rooms, [
+    { id: "saved", name: "Bedroom" },
+    { id: null, name: "Kitchen" },
+  ]);
+  assert.equal(catalog.rooms.length, 1);
 });

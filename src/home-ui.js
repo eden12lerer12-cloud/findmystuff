@@ -1,5 +1,10 @@
 import { addLocation, renamePlace } from "./store.js";
-import { resolveLocation, isInLocation, itemPlace } from "./locations.js";
+import {
+  resolveLocation,
+  isInLocation,
+  itemPlace,
+  homeRooms,
+} from "./locations.js";
 
 export function setupHome({
   getState,
@@ -96,7 +101,7 @@ export function setupHome({
         details.append(branch(child));
       return details;
     }
-    for (const room of catalog.rooms) {
+    for (const room of homeRooms(items, catalog)) {
       const section = document.createElement("details");
       section.className = "home-room";
       section.open = true;
@@ -118,12 +123,14 @@ export function setupHome({
           "text-button",
           t("showNamedItems", { name: room.name, count }),
         ),
-        button(
-          t("rename"),
-          () => rename("rooms", room),
-          "text-button",
-          t("renameNamed", { name: room.name }),
-        ),
+        room.id
+          ? button(
+              t("rename"),
+              () => rename("rooms", room),
+              "text-button",
+              t("renameNamed", { name: room.name }),
+            )
+          : button(t("addRoom"), addRoom),
       );
       section.append(actions);
       for (const node of catalog.locations.filter(
@@ -140,7 +147,7 @@ export function setupHome({
       heading.textContent = t("unassignedPlaces");
       tree.append(heading, ...unassigned.map(branch));
     }
-    if (!catalog.rooms.length && !catalog.locations.length) {
+    if (!homeRooms(items, catalog).length && !catalog.locations.length) {
       const empty = document.createElement("p");
       empty.className = "field-help";
       empty.textContent = t("homeEmpty");

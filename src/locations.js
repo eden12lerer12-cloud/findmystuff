@@ -1,3 +1,4 @@
+import { normalize } from "./text.js";
 export function resolveLocation(catalog, id) {
   const byId = new Map(catalog.locations.map((node) => [node.id, node]));
   const nodes = [],
@@ -78,4 +79,14 @@ export function withLocationHistory(previous, item) {
   if (history.length >= 1000) throw new Error("Location history limit reached");
   history.push(entry({ ...item, locationRecordedAt: item.updatedAt }));
   return { ...item, locationRecordedAt: item.updatedAt, history };
+}
+
+export function homeRooms(items, catalog) {
+  const rooms = [...catalog.rooms];
+  for (const item of items) {
+    const name = itemPlace(item, catalog).room;
+    if (name && !rooms.some((room) => normalize(room.name) === normalize(name)))
+      rooms.push({ id: null, name });
+  }
+  return rooms;
 }
