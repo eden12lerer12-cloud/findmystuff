@@ -17,3 +17,11 @@ Implemented additive database v3 migration, nested home storage (up to eight lev
 Validation: 43 automated tests, production build, legacy v1/v2 database fixtures preserved, v1/v2/v3 backup compatibility and v3 round trip. Live browser: nested drawer creation, rename, descendant filtering, reload persistence, notes-only edit and confirmed move produced exactly two history entries. Worker-exported v3 backup parsed independently and reimported with all four existing IDs preserved. Temporary test item/locations removed afterward; original three fictional demo records retained.
 
 Limits: 500 saved rooms/locations per catalog, eight hierarchy levels, 1,000 history events per item; limits reject instead of silently truncating. Backups retain the 50 MiB/20,000-item safety limits. Synonyms are intentionally finite. Screenshots are fictional examples. Next: dashboard, theme, onboarding and release verification.
+
+## Milestone 3 — User experience and privacy controls
+
+Added persisted Light/Dark/System appearance, optional four-step onboarding, recently opened structured locations (six IDs stored locally), public-feedback privacy warning, keyboard focus/reduced-motion refinements and 36-card incremental rendering with debounced search. Details have separate Edit/Delete actions. Added explicit erase-all confirmation; one transaction resets this application's inventory/settings only. A generation token rejects imports and drafts prepared before an erase. Cross-tab notifications cancel pending workers, clear undo/drafts/photo previews and reload the empty state.
+
+Validation: 45 automated tests, build, browser checks at 390 px (no horizontal overflow), Hebrew RTL/English LTR, theme persistence after reload, optional guide dismissal and erase-dialog cancellation. Erasure and stale-write rollback tested only against isolated fake IndexedDB, never the live inventory. Browser console had no warnings/errors. Screenshots show fictional examples.
+
+Limits: storage quota/browser eviction still require private backups. Large inventories remain in memory; pagination bounds DOM work, not database size. Broader screen-reader and device testing needs outside contributors. Next: production path and public release verification.

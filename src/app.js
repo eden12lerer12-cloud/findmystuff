@@ -4,12 +4,18 @@ import {
   filterItems,
   validateItem,
 } from "./model.js";
-import { snapshot, mutate } from "./store.js";
+import { snapshot, mutate, eraseAll } from "./store.js";
 import { applyTranslations, translate } from "./i18n.js";
 import { createCatalogManager } from "./catalog-ui.js";
 import { setupBackups } from "./backup-ui.js";
 import { setupHome } from "./home-ui.js";
 import { itemPlace, resolveLocation, isInLocation } from "./locations.js";
+import {
+  preference,
+  savePreference,
+  recentLocations,
+  clearPreferences,
+} from "./preferences.js";
 const $ = (id) => document.getElementById(id);
 let language = "he";
 try {
@@ -61,7 +67,10 @@ let items = [],
 let previousCategory = "general",
   legacyCategoryLabel = null,
   viewingId = null;
-let selectedLocationId = "";
+let selectedLocationId = "",
+  generation = "initial",
+  editorGeneration = "initial",
+  visibleLimit = 36;
 const channel =
   typeof BroadcastChannel !== "undefined"
     ? new BroadcastChannel("where-did-i-put-it")
@@ -171,6 +180,7 @@ const homeUI = setupHome({
     resetFilters();
     room = filter.room ?? "";
     selectedLocationId = filter.locationId ?? "";
+    rememberLocation(selectedLocationId);
     render();
   },
   addRoom: () => catalogManager.open("rooms"),
@@ -208,15 +218,20 @@ function fail(error) {
   toast(t("storageError"));
 }
 async function refresh() {
-  ({ items, catalog } = await snapshot());
+  const state = await snapshot();
+  if (generation !== state.generation) resetPrivateUI();
+  ({ items, catalog, generation } = state);
   render();
 }
 async function saveChanges(changes, removedId, importedCatalog) {
-  await mutate(changes, removedId, importedCatalog);
+  await mutate(changes, removedId, importedCatalog, {
+    expectedGeneration: $("editor").open ? editorGeneration : generation,
+  });
   await refresh();
   channel?.postMessage("changed");
 }
 function resetFilters() {
+  visibleLimit = 36;
   room = "";
   selectedLocationId = "";
   $("search").value = "";
@@ -234,10 +249,12 @@ function render() {
   homeUI.render();
   const rooms = [
     ...new Set([
-      ...items.map((i) => i.room),
+      ...items.map((i) => itemPlace(i, catalog).room),
       ...catalog.rooms.map((p) => p.name),
     ]),
-  ].sort((a, b) => a.localeCompare(b, language));
+  ]
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b, language));
   if (room && !rooms.includes(room)) room = "";
   $("rooms").replaceChildren();
   for (const value of ["", ...rooms]) {
@@ -245,6 +262,7 @@ function render() {
     button.type = "button";
     button.setAttribute("aria-pressed", String(room === value));
     button.onclick = () => {
+      visibleLimit = 36;
       room = value;
       selectedLocationId = "";
       render();
@@ -276,7 +294,16 @@ function render() {
   $("results-label").textContent = items.length
     ? `${t(filtered.length === 1 ? "itemCountOne" : "itemCount", { count: filtered.length })}${room ? ` · ${room}` : ""}${selectedLocationId ? " · " + resolveLocation(catalog, selectedLocationId).location : ""}`
     : "";
-  $("items").replaceChildren(...filtered.map(itemCard));
+  $("items").replaceChildren(...filtered.slice(0, visibleLimit).map(itemCard));
+  $("show-more").hidden = filtered.length <= visibleLimit;
+  $("showing").textContent =
+    filtered.length > 36
+      ? t("showing", {
+          shown: Math.min(visibleLimit, filtered.length),
+          total: filtered.length,
+        })
+      : "";
+  renderRecent();
   if ($("item-details").open) {
     const current = items.find((i) => i.id === viewingId);
     if (current) renderDetails(current);
@@ -345,19 +372,20 @@ function itemCard(item) {
   edit.onclick = () => openEditor(item);
   const remove = node("button", "delete", t("delete"));
   remove.setAttribute("aria-label", t("deleteItem", { name: item.name }));
-  remove.onclick = async () => {
-    try {
-      await saveChanges([], item.id);
-      deletedItem = item;
-      toast(t("deleted"), true);
-    } catch (error) {
-      fail(error);
-    }
-  };
+  remove.onclick = () => deleteRecord(item);
   footer.append(edit, remove);
   body.append(footer);
   article.append(visual, body);
   return article;
+}
+async function deleteRecord(item) {
+  try {
+    await saveChanges([], item.id);
+    deletedItem = item;
+    toast(t("deleted"), true);
+  } catch (error) {
+    fail(error);
+  }
 }
 function renderDetails(item) {
   const place = itemPlace(item, catalog);
@@ -438,6 +466,7 @@ function renderDetails(item) {
   content.append(history);
 }
 function openDetails(item) {
+  rememberLocation(item.locationId);
   viewingId = item.id;
   renderDetails(item);
   $("item-details").showModal();
@@ -452,6 +481,10 @@ $("details-edit").onclick = () => {
   $("item-details").close();
   if (item) openEditor(item);
 };
+$("details-delete").onclick = async () => {
+  const item = items.find((i) => i.id === viewingId);
+  if (item) await deleteRecord(item);
+};
 function updatePhoto() {
   $("photo-preview").hidden = !image;
   $("photo-preview").src = image || "";
@@ -464,6 +497,7 @@ function openEditor(item) {
     return;
   }
   editorSession++;
+  editorGeneration = generation;
   $("item-form").reset();
   renderCatalogOptions();
   $("form-error").textContent = "";
@@ -489,8 +523,21 @@ for (const id of ["hero-add", "add-item", "empty-add"])
   $(id).onclick = () => openEditor();
 for (const id of ["close-editor", "cancel-editor"])
   $(id).onclick = () => $("editor").close();
-for (const id of ["search", "category", "sort"])
-  $(id).addEventListener(id === "search" ? "input" : "change", render);
+let searchTimer;
+$("search").addEventListener("input", () => {
+  clearTimeout(searchTimer);
+  visibleLimit = 36;
+  searchTimer = setTimeout(render, 100);
+});
+for (const id of ["category", "sort"])
+  $(id).addEventListener("change", () => {
+    visibleLimit = 36;
+    render();
+  });
+$("show-more").onclick = () => {
+  visibleLimit += 36;
+  render();
+};
 $("clear-filters").onclick = resetFilters;
 $("item-form").onsubmit = async (event) => {
   event.preventDefault();
@@ -653,7 +700,7 @@ $("demo").onclick = async () => {
     fail(error);
   }
 };
-setupBackups({
+const backups = setupBackups({
   t,
   toast,
   onChanged: async () => {
@@ -683,20 +730,131 @@ document.addEventListener("keydown", (event) => {
     !$("item-details").open &&
     !$("backup-progress").open &&
     !$("home-dialog").open &&
-    !$("rename-dialog").open
+    !document.querySelector("dialog[open]")
   ) {
     event.preventDefault();
     $("search").focus();
   }
 });
-if (channel) channel.onmessage = () => refresh().catch(fail);
+if (channel)
+  channel.onmessage = ({ data }) => {
+    if (data === "erased") resetPrivateUI();
+    refresh().catch(fail);
+  };
 window.addEventListener("focus", () => {
   if (ready) refresh().catch(fail);
 });
+function rememberLocation(id) {
+  if (!id) return;
+  const ids = recentLocations(preference("recent-locations"), catalog);
+  savePreference(
+    "recent-locations",
+    JSON.stringify([id, ...ids.filter((value) => value !== id)].slice(0, 6)),
+  );
+  renderRecent();
+}
+function renderRecent() {
+  const ids = recentLocations(preference("recent-locations"), catalog);
+  $("recent-places").hidden = !ids.length;
+  $("recent-place-list").replaceChildren(
+    ...ids.map((id) => {
+      const place = resolveLocation(catalog, id);
+      const button = node(
+        "button",
+        "chip",
+        [place.room, place.location].filter(Boolean).join(" › "),
+      );
+      button.onclick = () => {
+        resetFilters();
+        selectedLocationId = id;
+        rememberLocation(id);
+        render();
+      };
+      return button;
+    }),
+  );
+}
+function resetPrivateUI() {
+  backups.cancel();
+  clearTimeout(searchTimer);
+  editorSession++;
+  deletedItem = null;
+  image = "";
+  editingId = null;
+  viewingId = null;
+  for (const form of document.querySelectorAll("form")) form.reset();
+  for (const id of ["details-content", "home-tree", "preset-list"])
+    $(id).replaceChildren();
+  updatePhoto();
+  $("toast").hidden = true;
+  for (const dialog of document.querySelectorAll("dialog[open]"))
+    dialog.close();
+  $("search").value = "";
+  room = "";
+  selectedLocationId = "";
+  visibleLimit = 36;
+  savePreference("recent-locations", "[]");
+}
+$("theme").value = preference("theme", "system");
+if (!["system", "light", "dark"].includes($("theme").value))
+  $("theme").value = "system";
+const systemTheme = matchMedia("(prefers-color-scheme: dark)");
+function applyTheme() {
+  document.documentElement.dataset.theme =
+    $("theme").value === "system"
+      ? systemTheme.matches
+        ? "dark"
+        : "light"
+      : $("theme").value;
+}
+systemTheme.addEventListener("change", applyTheme);
+$("theme").onchange = () => {
+  savePreference("theme", $("theme").value);
+  applyTheme();
+};
+applyTheme();
+$("open-guide").onclick = () => $("guide-dialog").showModal();
+for (const id of ["guide-done", "guide-skip"])
+  $(id).onclick = () => {
+    savePreference("onboarding", "done");
+    $("guide-dialog").close();
+  };
+$("guide-dialog").addEventListener("cancel", () =>
+  savePreference("onboarding", "done"),
+);
+$("open-feedback").onclick = () => $("feedback-dialog").showModal();
+$("feedback-close").onclick = () => $("feedback-dialog").close();
+$("open-erase").onclick = () => {
+  $("erase-form").reset();
+  $("erase-error").textContent = "";
+  $("erase-dialog").showModal();
+};
+$("erase-cancel").onclick = () => $("erase-dialog").close();
+$("erase-form").onsubmit = async (event) => {
+  event.preventDefault();
+  if (!$("erase-check").checked) return;
+  $("erase-confirm").disabled = true;
+  try {
+    backups.cancel();
+    await eraseAll();
+    resetPrivateUI();
+    clearPreferences();
+    channel?.postMessage("erased");
+    await refresh();
+    toast(t("erased"));
+  } catch (error) {
+    console.error(error);
+    $("erase-error").textContent = t("storageError");
+  } finally {
+    $("erase-confirm").disabled = false;
+  }
+};
 applyLanguage();
 try {
   await refresh();
   ready = true;
+  if (!items.length && preference("onboarding") !== "done")
+    $("guide-dialog").showModal();
 } catch (error) {
   render();
   fail(error);

@@ -1,6 +1,6 @@
 import { createBackup, readBackup, importPreview } from "./backup-core.js";
 import { snapshot, itemKeys, mutate } from "./store.js";
-let prepared;
+let prepared, generation;
 self.onmessage = async ({ data }) => {
   try {
     if (data.action === "export")
@@ -9,6 +9,7 @@ self.onmessage = async ({ data }) => {
         blob: createBackup(await snapshot()),
       });
     else if (data.action === "prepare") {
+      generation = (await snapshot()).generation;
       prepared = await readBackup(data.file);
       self.postMessage({
         type: "preview",
@@ -17,6 +18,7 @@ self.onmessage = async ({ data }) => {
     } else if (data.action === "commit" && prepared) {
       const result = await mutate(prepared.items, undefined, prepared.catalog, {
         skipExisting: !data.replace,
+        expectedGeneration: generation,
       });
       prepared = null;
       self.postMessage({ type: "imported", result });

@@ -4,12 +4,12 @@ import { resolveLocation, isInLocation, itemPlace } from "./locations.js";
 export function setupHome({ getState, t, onChange, onFilter, addRoom }) {
   const $ = (id) => document.getElementById(id);
   let renaming = null;
-  function button(text, callback, className = "text-button",label) {
+  function button(text, callback, className = "text-button", label) {
     const el = document.createElement("button");
     el.type = "button";
     el.className = className;
     el.textContent = text;
-    if(label)el.setAttribute('aria-label',label);
+    if (label) el.setAttribute("aria-label", label);
     el.onclick = callback;
     return el;
   }
@@ -17,7 +17,7 @@ export function setupHome({ getState, t, onChange, onFilter, addRoom }) {
     renaming = { type, id: preset.id };
     $("rename-name").maxLength = type === "rooms" ? 80 : 180;
     $("rename-name").value = preset.name;
-    $('rename-error').textContent='';
+    $("rename-error").textContent = "";
     $("rename-dialog").showModal();
     $("rename-name").focus();
   }
@@ -45,12 +45,17 @@ export function setupHome({ getState, t, onChange, onFilter, addRoom }) {
     if ([...parent.options].some((o) => o.value === previous))
       parent.value = previous;
     const tree = $("home-tree");
-    const expanded=new Set([...tree.querySelectorAll('details[open][data-location-id]')].map(node=>node.dataset.locationId));
+    const expanded = new Set(
+      [...tree.querySelectorAll("details[open][data-location-id]")].map(
+        (node) => node.dataset.locationId,
+      ),
+    );
     tree.replaceChildren();
     function branch(place) {
       const details = document.createElement("details");
       details.className = "home-branch";
-      details.dataset.locationId=place.id;details.open=expanded.has(place.id);
+      details.dataset.locationId = place.id;
+      details.open = expanded.has(place.id);
       const summary = document.createElement("summary");
       summary.textContent = place.name;
       details.append(summary);
@@ -60,11 +65,21 @@ export function setupHome({ getState, t, onChange, onFilter, addRoom }) {
         isInLocation(item, place.id, catalog),
       ).length;
       actions.append(
-        button(t("showItems", { count }), () => {
-          onFilter({ locationId: place.id });
-          $("home-dialog").close();
-        },'text-button',t('showNamedItems',{name:place.name,count})),
-        button(t("rename"), () => rename("locations", place),'text-button',t('renameNamed',{name:place.name})),
+        button(
+          t("showItems", { count }),
+          () => {
+            onFilter({ locationId: place.id });
+            $("home-dialog").close();
+          },
+          "text-button",
+          t("showNamedItems", { name: place.name, count }),
+        ),
+        button(
+          t("rename"),
+          () => rename("locations", place),
+          "text-button",
+          t("renameNamed", { name: place.name }),
+        ),
       );
       details.append(actions);
       for (const child of catalog.locations.filter(
@@ -86,11 +101,21 @@ export function setupHome({ getState, t, onChange, onFilter, addRoom }) {
         (item) => itemPlace(item, catalog).room === room.name,
       ).length;
       actions.append(
-        button(t("showItems", { count }), () => {
-          onFilter({ room: room.name });
-          $("home-dialog").close();
-        },'text-button',t('showNamedItems',{name:room.name,count})),
-        button(t("rename"), () => rename("rooms", room),'text-button',t('renameNamed',{name:room.name})),
+        button(
+          t("showItems", { count }),
+          () => {
+            onFilter({ room: room.name });
+            $("home-dialog").close();
+          },
+          "text-button",
+          t("showNamedItems", { name: room.name, count }),
+        ),
+        button(
+          t("rename"),
+          () => rename("rooms", room),
+          "text-button",
+          t("renameNamed", { name: room.name }),
+        ),
       );
       section.append(actions);
       for (const node of catalog.locations.filter(

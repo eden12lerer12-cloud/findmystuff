@@ -113,4 +113,5 @@ export function setupBackups({ t, toast, onChanged }) {
       replace: $("replace-import").checked,
     });
   };
+  return { cancel: reset };
 }

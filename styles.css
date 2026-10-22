@@ -63,7 +63,7 @@ a {
 }
 .topbar {
   height: 88px;
-  background: #fff;
+  background: var(--white);
   border-bottom: 1px solid var(--line);
   display: flex;
   align-items: center;
@@ -161,7 +161,7 @@ h1 > span {
   background: var(--purple-dark);
 }
 .secondary {
-  background: white;
+  background: var(--white);
   border: 1px solid var(--line);
   padding: 12px 18px;
   border-radius: 10px;
@@ -197,7 +197,7 @@ h1 > span {
   justify-content: center;
   width: 229px;
   height: 219px;
-  background: #fff;
+  background: var(--white);
   border: 1px solid #ede9f7;
   box-shadow: 0 15px 35px #61508b13;
   border-radius: 18px;
@@ -242,7 +242,7 @@ h1 > span {
 }
 .floating-item {
   position: absolute;
-  background: #fff;
+  background: var(--white);
   padding: 15px;
   border-radius: 16px;
   box-shadow: 0 7px 22px #5f477511;
@@ -303,7 +303,7 @@ h1 > span {
 .search-wrap {
   display: flex;
   align-items: center;
-  background: white;
+  background: var(--white);
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 0 16px;
@@ -372,7 +372,7 @@ select {
 }
 .chip {
   border: 1px solid var(--line);
-  background: white;
+  background: var(--white);
   color: var(--muted);
   padding: 9px 14px;
   border-radius: 9px;
@@ -403,7 +403,7 @@ select {
   margin-top: 22px;
 }
 .item-card {
-  background: white;
+  background: var(--white);
   border: 1px solid var(--line);
   border-radius: 15px;
   overflow: hidden;
@@ -654,7 +654,7 @@ dialog::backdrop {
   border: 1px solid #e5dfec;
   padding: 12px;
   border-radius: 9px;
-  background: #fff;
+  background: var(--white);
   color: var(--ink);
   font-size: 14px;
   resize: vertical;
@@ -776,7 +776,7 @@ dialog::backdrop {
 .skip:focus {
   position: fixed;
   z-index: 100;
-  background: white;
+  background: var(--white);
   padding: 12px;
   top: 0;
 }
@@ -979,7 +979,7 @@ dialog::backdrop {
 }
 .language-button {
   border: 1px solid var(--line);
-  background: #fff;
+  background: var(--white);
   border-radius: 8px;
   padding: 8px 11px;
   font-size: 12px;
@@ -1453,4 +1453,165 @@ textarea::placeholder {
 }
 .advanced-fields > label > textarea {
   margin-top: 8px;
+}
+
+/* Theme colors apply to native controls and all readable application surfaces. */
+:root {
+  color-scheme: light;
+  --purple: #6550be;
+  --muted: #6e687a;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ink: #f1eef8;
+  --muted: #c2b9d0;
+  --purple: #b7a7ff;
+  --purple-dark: #cbbbff;
+  --lavender: #30283e;
+  --line: #494050;
+  --paper: #17131d;
+  --white: #231e2b;
+}
+[data-theme="dark"] .primary {
+  background: #8c76e5;
+  color: #171020;
+}
+[data-theme="dark"] .primary:hover {
+  background: #ac96ff;
+}
+[data-theme="dark"]
+  :is(
+    .hero-art,
+    .place-card,
+    .floating-item,
+    .item-image,
+    .item-category,
+    .tip,
+    .empty-icon,
+    .photo-picker,
+    .secondary:hover,
+    .local-badge
+  ) {
+  background: var(--lavender);
+  color: var(--ink);
+}
+[data-theme="dark"]
+  :is(
+    .location,
+    .location strong,
+    .notes,
+    .updated,
+    .last-recorded,
+    .accuracy-notice,
+    footer,
+    footer p,
+    .tip p,
+    .photo-picker small,
+    .optional,
+    .card-footer .delete,
+    .hero-copy p,
+    .place-card span,
+    .place-card strong
+  ) {
+  color: var(--muted);
+}
+[data-theme="dark"] :is(input, textarea)::placeholder {
+  color: var(--muted);
+}
+[data-theme="dark"] :is(.notes, .card-footer) {
+  border-color: var(--line);
+}
+[data-theme="dark"] .form-error {
+  color: #ffb4bc;
+}
+.theme-label select {
+  max-width: 140px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: var(--white);
+  font-size: 12px;
+}
+.topbar {
+  gap: 16px;
+}
+.recent-places {
+  margin: 0 0 18px;
+}
+.recent-places h3 {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
+}
+#recent-place-list {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.pagination {
+  text-align: center;
+  margin-block: 20px;
+}
+.guide-steps {
+  padding-inline-start: 24px;
+  line-height: 1.8;
+}
+.guide-steps li {
+  padding: 8px;
+}
+.footer-tools {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+#feedback-dialog p,
+#erase-dialog p {
+  line-height: 1.8;
+}
+#feedback-dialog a {
+  display: inline-block;
+  margin-block: 12px;
+}
+summary:focus-visible {
+  outline: 3px solid var(--purple);
+  outline-offset: 3px;
+}
+@media (max-width: 650px) {
+  .topbar {
+    gap: 9px;
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 76px;
+    padding: 15px 18px;
+  }
+  .topbar .brand {
+    font-size: 20px;
+    flex: 1;
+  }
+  .topbar .local-badge {
+    display: none;
+  }
+  .theme-label select {
+    max-width: 116px;
+  }
+  .language-button {
+    padding: 8px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+[data-theme="dark"] .hero {
+  background: var(--lavender);
+}
+[data-theme="dark"] :is(.mini-location, .count) {
+  background: var(--white);
+  color: var(--muted);
 }

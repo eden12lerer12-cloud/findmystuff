@@ -30,8 +30,9 @@ export async function openStore() {
           const catalog = validateCatalog(read.result);
           const items = request.transaction.objectStore("items").openCursor();
           items.onsuccess = () => {
-            const cursor=items.result;
-            if(cursor) {const item=cursor.value;
+            const cursor = items.result;
+            if (cursor) {
+              const item = cursor.value;
               if (
                 item.room &&
                 catalog.rooms.length < 500 &&
@@ -44,7 +45,7 @@ export async function openStore() {
                   name: item.room,
                 });
               cursor.continue();
-            }else settings.put({ id: "catalog", ...validateCatalog(catalog) });
+            } else settings.put({ id: "catalog", ...validateCatalog(catalog) });
           };
         };
       };
@@ -82,10 +83,12 @@ export async function snapshot() {
     const tx = db.transaction(["items", "settings"], "readonly");
     const items = tx.objectStore("items").getAll();
     const catalog = tx.objectStore("settings").get("catalog");
+    const generation = tx.objectStore("settings").get("generation");
     tx.oncomplete = () => {
       try {
         resolve({
           items: items.result,
+          generation: generation.result?.value ?? "initial",
           catalog: validateCatalog(catalog.result),
         });
       } catch (error) {
@@ -110,16 +113,22 @@ export async function itemKeys() {
   });
 }
 // Catalog and item updates share a transaction, so deletion cannot orphan items.
-async function update(operation) {
+async function update(operation, expectedGeneration) {
   const db = await openStore();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(["items", "settings"], "readwrite");
     const items = tx.objectStore("items");
     const settings = tx.objectStore("settings");
+    const generation = settings.get("generation");
     const request = settings.get("catalog");
     let failure, result;
     request.onsuccess = () => {
       try {
+        if (
+          expectedGeneration !== undefined &&
+          expectedGeneration !== (generation.result?.value ?? "initial")
+        )
+          throw new Error("Data was erased; reload before saving");
         result = operation({
           items,
           settings,
@@ -202,7 +211,7 @@ export async function mutate(
     }
     if (importedCatalog) settings.put({ id: "catalog", ...catalog });
     return result;
-  });
+  }, options.expectedGeneration);
 }
 export async function addPreset(type, name) {
   if (!["categories", "locations", "rooms"].includes(type))
@@ -296,5 +305,22 @@ export async function renamePlace(type, id, name) {
         cursor.continue();
       };
     }
+  });
+}
+
+// One transaction clears only this app's inventory and settings. In-flight stale
+// imports/drafts cannot reintroduce data using the previous generation.
+export async function eraseAll() {
+  const db = await openStore();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(["items", "settings"], "readwrite");
+    tx.objectStore("items").clear();
+    const settings = tx.objectStore("settings");
+    settings.clear();
+    settings.put({ id: "catalog", ...defaultCatalog() });
+    settings.put({ id: "generation", value: crypto.randomUUID() });
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error ?? new Error("Erase aborted"));
   });
 }

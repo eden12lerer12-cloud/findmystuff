@@ -92,7 +92,10 @@ test("catalog migration and persistent operations preserve inventory", async (t)
       const restored = parseBackupBundle(
         JSON.stringify({ app: "where-did-i-put-it", version: 2, ...state }),
       );
-      assert.deepEqual(restored, state);
+      assert.deepEqual(restored, {
+        items: state.items,
+        catalog: state.catalog,
+      });
     },
   );
   await t.test(

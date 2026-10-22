@@ -34,6 +34,13 @@
         aria-label="Switch to English"
       >
         English</button
+      ><label class="theme-label"
+        ><span class="sr-only" data-i18n="theme">תצוגה</span
+        ><select id="theme">
+          <option value="system" data-i18n="themeSystem">לפי המכשיר</option>
+          <option value="light" data-i18n="themeLight">בהיר</option>
+          <option value="dark" data-i18n="themeDark">כהה</option>
+        </select></label
       ><span class="local-badge"
         ><span></span><span data-i18n="privateBadge">נשמר רק אצלך</span></span
       >
@@ -98,6 +105,10 @@
             ＋ הוספת חפץ
           </button>
         </div>
+        <section id="recent-places" class="recent-places" hidden>
+          <h3 data-i18n="recentPlaces">מקומות שנפתחו לאחרונה</h3>
+          <div id="recent-place-list"></div>
+        </section>
         <div class="toolbar">
           <div class="search-wrap">
             <span aria-hidden="true">⌕</span
@@ -155,6 +166,12 @@
         </div>
         <p id="results-label" class="results-label" aria-live="polite"></p>
         <div id="items" class="items"></div>
+        <div class="pagination">
+          <p id="showing" class="field-help"></p>
+          <button id="show-more" class="secondary" data-i18n="showMore" hidden>
+            הצגת חפצים נוספים
+          </button>
+        </div>
         <div id="empty" class="empty">
           <div class="empty-icon">⌖</div>
           <h3 data-i18n="emptyTitle">כאן מתחילים לזכור</h3>
@@ -210,12 +227,81 @@
             hidden
           />
         </div>
+        <div class="footer-tools">
+          <button id="open-guide" class="text-button" data-i18n="guide">
+            איך מתחילים?</button
+          ><button id="open-feedback" class="text-button" data-i18n="feedback">
+            משוב</button
+          ><button id="open-erase" class="text-button" data-i18n="erase">
+            מחיקת כל הנתונים שלי
+          </button>
+        </div>
         <p data-i18n="storageNotice">
           הנתונים נשמרים בדפדפן ובמכשיר הזה. ניקוי נתוני האתר עלול למחוק אותם —
           כדאי לייצא גיבוי.
         </p>
       </footer>
     </main>
+    <dialog id="guide-dialog" aria-labelledby="guide-title">
+      <div class="home-body">
+        <h2 id="guide-title" data-i18n="guideTitle">ארבעה צעדים</h2>
+        <ol class="guide-steps">
+          <li data-i18n="guideAdd"></li>
+          <li data-i18n="guidePlace"></li>
+          <li data-i18n="guideSearch"></li>
+          <li data-i18n="guideBackup"></li>
+        </ol>
+        <div class="dialog-footer">
+          <button id="guide-done" class="primary" data-i18n="guideDone">
+            הבנתי</button
+          ><button id="guide-skip" class="secondary" data-i18n="guideSkip">
+            דלג
+          </button>
+        </div>
+      </div>
+    </dialog>
+    <dialog id="feedback-dialog" aria-labelledby="feedback-title">
+      <div class="home-body">
+        <h2 id="feedback-title" data-i18n="feedback">משוב</h2>
+        <p data-i18n="feedbackPrivacy"></p>
+        <a
+          class="primary"
+          href="https://github.com/eden12lerer12-cloud/findmystuff/issues/new/choose"
+          target="_blank"
+          rel="noopener noreferrer"
+          data-i18n="feedback"
+          >משוב</a
+        ><button id="feedback-close" class="secondary" data-i18n="close">
+          סגירה
+        </button>
+      </div>
+    </dialog>
+    <dialog id="erase-dialog" aria-labelledby="erase-title">
+      <form id="erase-form" class="home-body">
+        <h2 id="erase-title" data-i18n="eraseTitle"></h2>
+        <p data-i18n="eraseWarning"></p>
+        <label class="check-label"
+          ><input type="checkbox" id="erase-check" required /><span
+            data-i18n="eraseCheck"
+          ></span
+        ></label>
+        <p id="erase-error" role="alert" class="form-error"></p>
+        <div class="dialog-footer">
+          <button
+            id="erase-confirm"
+            class="primary"
+            type="submit"
+            data-i18n="eraseConfirm"
+          ></button
+          ><button
+            id="erase-cancel"
+            type="button"
+            class="secondary"
+            data-i18n="cancel"
+          ></button>
+        </div>
+      </form>
+    </dialog>
     <dialog id="editor" aria-labelledby="editor-title">
       <form id="item-form">
         <div class="dialog-heading">
@@ -510,6 +596,13 @@
           data-i18n="edit"
         >
           עריכה</button
+        ><button
+          type="button"
+          id="details-delete"
+          class="secondary"
+          data-i18n="delete"
+        >
+          מחיקה</button
         ><button
           type="button"
           id="details-done"

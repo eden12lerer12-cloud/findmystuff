@@ -129,7 +129,10 @@ test("version 2 migration preserves every record and ID; structured saves and ba
   assert.equal(state.items[0].history.length, 2);
   await assert.rejects(removePreset("locations", closet.id));
   await assert.rejects(removePreset("rooms", "existing-room"));
-  assert.deepEqual(await readBackup(createBackup(state)), state);
+  assert.deepEqual(await readBackup(createBackup(state)), {
+    items: state.items,
+    catalog: state.catalog,
+  });
   await removePreset("locations", drawer.id);
   state = await snapshot();
   assert.equal(state.items[0].locationId, undefined);

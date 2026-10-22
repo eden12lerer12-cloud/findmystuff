@@ -1,7 +1,14 @@
 import { normalize } from "./text.js";
 const groups = [
   ["keys", "key", "מפתח", "מפתחות"],
-  ["passport", "passports", "travel documents", "מסמכי נסיעה", "דרכון", "דרכונים"],
+  [
+    "passport",
+    "passports",
+    "travel documents",
+    "מסמכי נסיעה",
+    "דרכון",
+    "דרכונים",
+  ],
   ["headphones", "headphone", "earphones", "earbuds", "אוזניות"],
   ["wallet", "purse", "ארנק"],
   ["documents", "document", "papers", "מסמכים", "מסמך"],
@@ -61,11 +68,18 @@ const stop = new Set([
   "לי",
   "בבקשה",
 ]);
-const aliases = new Map(groups.flatMap(group => group.map(term => [term,group[0]])));
-const aliasPattern = new RegExp(`(^|\\s)(?:[בהל])?(${[...aliases.keys()].sort((a,b)=>b.length-a.length).join('|')})(?=\\s|$)`, 'gu');
+const aliases = new Map(
+  groups.flatMap((group) => group.map((term) => [term, group[0]])),
+);
+const aliasPattern = new RegExp(
+  `(^|\\s)(?:[בהל])?(${[...aliases.keys()].sort((a, b) => b.length - a.length).join("|")})(?=\\s|$)`,
+  "gu",
+);
 function canonical(text) {
   const value = " " + normalize(text).replace(/[^\p{L}\p{N}\s]/gu, " ") + " ";
-  return value.replace(aliasPattern,(_,prefix,term)=>prefix+aliases.get(term)).trim();
+  return value
+    .replace(aliasPattern, (_, prefix, term) => prefix + aliases.get(term))
+    .trim();
 }
 function distance(a, b) {
   const row = Array.from({ length: b.length + 1 }, (_, i) => i);
